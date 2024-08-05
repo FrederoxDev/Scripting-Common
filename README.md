@@ -1,5 +1,9 @@
 # Scripting-Common
 
+```
+npm install scripting-common
+```
+
 A collection of shared-generic code between all of my scripting projects. The goal isn't to be a complete feature set of everything, I'm simply adding to this as I go along on demand of when I need things.
 
 ### Contributing
