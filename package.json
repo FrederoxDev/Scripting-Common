@@ -1,6 +1,6 @@
 {
   "name": "scripting-common",
-  "version": "1.0.5",
+  "version": "1.0.4",
   "description": "Generic helper code for the MCBE Scripting-API's",
   "author": "FrederoxDev",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "typescript": "^5.5.4"
   },
   "scripts": {
-    "release": "npm version minor && git add . && git commit -m 'Bump version' && git push && tsc && npm publish"
+    "release": "npm version minor && git push && tsc && npm publish"
   },
   "types": "dist/Index.d.ts",
   "main": "dist/Index.js",
