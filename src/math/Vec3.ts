@@ -2,12 +2,19 @@ import { Vector2, Vector3 } from "@minecraft/server";
 import { Vec2 } from "./Vec2.js"
 
 export class Vec3 {
-    static from(x: number, y: number, z: number): Vector3 {
-        return { x, y, z }
-    }
+    static from(x: number, y: number, z: number): Vector3;
+    static from(x: [number, number, number]): Vector3;
 
-    static fromArray(arr: [number, number, number]): Vector3 {
-        return { x: arr[0], y: arr[1], z: arr[2]}
+    static from(x: number | number[], y?: number, z?: number): Vector3 {
+        if (Array.isArray(x)) {
+            return { x: x[0], y: x[1], z: x[2] }
+        }
+
+        if (typeof x === 'number' && y !== undefined && z !== undefined) {
+            return { x, y, z }
+        }
+
+        throw new Error("Invalid Arguments");
     }
 
     static add(lhs: Vector3, rhs: Vector3): Vector3 {
@@ -18,8 +25,28 @@ export class Vec3 {
         return Vec3.from(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
     }
 
-    static divScalar(lhs: Vector3, scalar: number): Vector3 {
-        return Vec3.from(lhs.x / scalar, lhs.y / scalar, lhs.z / scalar);
+    static div(lhs: Vector3, rhs: Vector3): Vector3;
+    static div(lhs: Vector3, rhs: number): Vector3;
+
+    static div(lhs: Vector3, rhs: Vector3 | number): Vector3 {
+        if (typeof rhs === "number") {
+            return Vec3.from(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs);
+        }
+        else {
+            return Vec3.from(lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z);
+        }
+    }
+
+    static mul(lhs: Vector3, rhs: Vector3): Vector3;
+    static mul(lhs: Vector3, rhs: number): Vector3;
+
+    static mul(lhs: Vector3, rhs: Vector3 | number): Vector3 {
+        if (typeof rhs === "number") {
+            return Vec3.from(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs);
+        }
+        else {
+            return Vec3.from(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
+        }
     }
 
     static equals(lhs: Vector3, rhs: Vector3): boolean {

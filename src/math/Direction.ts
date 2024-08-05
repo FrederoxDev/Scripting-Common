@@ -9,11 +9,18 @@ const CARDINAL_DIRS = [
 ]
 
 export function DirectionFromCardinalString(cardinal: string): Direction {
-    if (cardinal == "north") return Direction.North;
-    else if (cardinal == "east") return Direction.East;
-    else if (cardinal == "south") return Direction.South;
-    else if (cardinal == "west") return Direction.West;
-    throw new Error(`Unexpected string '${cardinal}' passed to DirectionFromCardinalString`);
+    const directions: Record<string, Direction> = {
+        north: Direction.North,
+        east: Direction.East,
+        south: Direction.South,
+        west: Direction.West,
+        up: Direction.Up,
+        down: Direction.Down
+    }
+
+    const result = directions[cardinal];
+    if (result !== undefined) return result;
+    throw new Error(`Bad string '${cardinal}' passed to DirectionFromCardinalString`);
 }
 
 export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
@@ -25,18 +32,19 @@ export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
     return CARDINAL_DIRS[newIndex];
 }
 
-const DIRECTION_TO_VEC = {
-    [Direction.North]: Vec3.from(0, 0, -1),
-    [Direction.East]: Vec3.from(1, 0, 0),
-    [Direction.South]: Vec3.from(0, 0, 1),
-    [Direction.West]: Vec3.from(-1, 0, 0),
-    [Direction.Up]: Vec3.from(0, 1, 0),
-    [Direction.Down]: Vec3.from(0, -1, 0)
+export function DirectionToVec3(direction: Direction) {
+    return {
+        [Direction.North]: Vec3.from(0, 0, -1),
+        [Direction.East]: Vec3.from(1, 0, 0),
+        [Direction.South]: Vec3.from(0, 0, 1),
+        [Direction.West]: Vec3.from(-1, 0, 0),
+        [Direction.Up]: Vec3.from(0, 1, 0),
+        [Direction.Down]: Vec3.from(0, -1, 0)
+    }[direction];
 }
 
-
 export function MoveInDirectionFrom(start: Vector3, direction: Direction, distance: number): Vector3 {
-    let movement = DIRECTION_TO_VEC[direction];
+    let movement = DirectionToVec3(direction);
 
     return {
         "x": start.x + movement.x * distance,
