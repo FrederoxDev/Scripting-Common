@@ -9,7 +9,7 @@
     "typescript": "^5.5.4"
   },
   "scripts": {
-    "build": "tsc"
+    "release": "npm version minor && git add . && git commit -m 'Bump version' && tsc && npm publish"
   },
   "types": "dist/Index.d.ts",
   "main": "dist/Index.js",
