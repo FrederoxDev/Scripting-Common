@@ -1,6 +1,6 @@
 {
   "name": "scripting-common",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Generic helper code for the MCBE Scripting-API's",
   "author": "FrederoxDev",
   "license": "MIT",
