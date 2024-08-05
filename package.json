@@ -1,0 +1,15 @@
+{
+  "name": "scripting-common",
+  "version": "1.0.0",
+  "description": "Generic helper code for the MCBE Scripting-API's",
+  "author": "FrederoxDev",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.1.0",
+    "typescript": "^5.5.4"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "types": "dist/index.d.ts"
+}
