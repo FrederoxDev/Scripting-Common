@@ -87,4 +87,8 @@ export class Vec3 {
             lhs.z + (rhs.z - lhs.z) * t
         )
     }
+
+    static isVec3(lhs: any): boolean {
+        return typeof lhs === "object" && lhs["x"] !== undefined && lhs["y"] !== undefined && lhs["z"] !== undefined;
+    }
 }
