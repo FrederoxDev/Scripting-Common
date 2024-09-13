@@ -1,5 +1,5 @@
 import { Vector3 } from "@minecraft/server";
-import { Vec3 } from "../Index";
+import { Vec3 } from "../../Index";
 
 export type Animation = {
     animation_length: number,

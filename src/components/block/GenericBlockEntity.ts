@@ -1,6 +1,9 @@
 import { BlockComponentOnPlaceEvent, BlockComponentPlayerDestroyEvent, BlockCustomComponent } from "@minecraft/server"
-import { BlockSource } from "../../Index";
 
+/**
+ * A base class for all singlular block entity needs.
+ * @ If overriding onPlace or onPlayerDestroy ensure you call the super.x method 
+ */
 export class GenericBlockEntity implements BlockCustomComponent {
     despawnEvent: string | undefined;
     entityIdentifier: string;
@@ -16,18 +19,15 @@ export class GenericBlockEntity implements BlockCustomComponent {
         this.entityIdentifier = entityIdentifier;
     }
 
-    onPlace(ev: BlockComponentOnPlaceEvent) {
+    onPlace(ev: BlockComponentOnPlaceEvent): void {
         ev.dimension.spawnEntity(this.entityIdentifier, ev.block.location);
     }
 
-    onPlayerDestroy(ev: BlockComponentPlayerDestroyEvent) {
-        const entities = BlockSource.getEntitiesAtBlock(ev.block, this.entityIdentifier);
+    onPlayerDestroy(ev: BlockComponentPlayerDestroyEvent): void {
+        const entity = ev.block.getBlockEntity(this.entityIdentifier);
+        if (entity === undefined) return;
 
-        if (this.despawnEvent !== undefined) {
-            entities.forEach(e => e.triggerEvent(this.despawnEvent!));
-        }
-        else {
-            entities.forEach(e => e.kill());
-        }
+        if (this.despawnEvent !== undefined) entity.triggerEvent(this.despawnEvent);
+        else entity.kill();
     }
 };
