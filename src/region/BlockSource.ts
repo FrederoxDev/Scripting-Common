@@ -16,4 +16,12 @@ export class BlockSource {
 
         return allEntities[0];
     }
+
+    static tryGetBlockEntity(block: Block, identifier: string): Entity | undefined {
+        const allEntities = block.dimension.getEntitiesAtBlockLocation(block.location)
+            .filter(e => e.typeId === identifier);
+
+        if (allEntities.length !== 1) return undefined;
+        return allEntities[0];
+    }
 }

@@ -1,5 +1,5 @@
 import { BlockComponentOnPlaceEvent, BlockComponentPlayerDestroyEvent, BlockCustomComponent } from "@minecraft/server"
-import { BlockSource } from "../Index";
+import { BlockSource } from "../../Index";
 
 export class GenericBlockEntity implements BlockCustomComponent {
     despawnEvent: string | undefined;
