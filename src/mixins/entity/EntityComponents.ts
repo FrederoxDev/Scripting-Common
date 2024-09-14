@@ -1,16 +1,22 @@
-import { Entity, EntityComponentTypes, EntityEquippableComponent, EntityInventoryComponent } from "@minecraft/server";
+import { Entity, EntityComponent, EntityComponentTypes, EntityEquippableComponent, EntityInventoryComponent } from "@minecraft/server";
 
 declare module "@minecraft/server" {
     interface Entity {
-        getInventory(): EntityInventoryComponent | undefined;
-        getEquippable(): EntityEquippableComponent | undefined;
+        getInventory(): EntityInventoryComponent;
+        getEquippable(): EntityEquippableComponent;
     }
 }
 
-Entity.prototype.getInventory = function(): EntityInventoryComponent | undefined {
-    return this.getComponent(EntityComponentTypes.Inventory) as EntityInventoryComponent | undefined;
+function _getComponent<T extends EntityComponent>(entity: Entity, id: EntityComponentTypes): T {
+    const component = entity.getComponent(id);
+    if (component === undefined) throw new Error(`_getComponent tried to get component '${id}' on entity id: '${entity.typeId}' but it was not found!`);
+    return component as T;
 }
 
-Entity.prototype.getEquippable = function(): EntityEquippableComponent | undefined {
-    return this.getComponent(EntityComponentTypes.Equippable) as EntityEquippableComponent | undefined;
+Entity.prototype.getInventory = function() {
+    return _getComponent<EntityInventoryComponent>(this, EntityComponentTypes.Inventory);
+}
+
+Entity.prototype.getEquippable = function() {
+    return _getComponent<EntityEquippableComponent>(this, EntityComponentTypes.Equippable);
 }
