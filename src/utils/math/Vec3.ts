@@ -129,4 +129,6 @@ export class Vec3 {
             z: Math.abs(lhs.z - rhs.z)
         }
     }
+
+    static ZERO = Vec3.from(0, 0, 0);
 }
