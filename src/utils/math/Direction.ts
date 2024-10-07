@@ -8,6 +8,8 @@ const CARDINAL_DIRS = [
     Direction.West
 ]
 
+export const DIRECTIONS = [Direction.North, Direction.East, Direction.South, Direction.West, Direction.Up, Direction.Down];
+
 export function DirectionFromCardinalString(cardinal: string): Direction {
     const directions: Record<string, Direction> = {
         north: Direction.North,
@@ -61,5 +63,16 @@ export function DirectionToAngle(direction: Direction): number {
         [Direction.West]: 270,
         [Direction.Up]: 0,
         [Direction.Down]: 0
+    }[direction];
+}
+
+export function InvertDirection(direction: Direction): Direction {
+    return {
+        [Direction.North]: Direction.South,
+        [Direction.East]: Direction.West,
+        [Direction.South]: Direction.North,
+        [Direction.West]: Direction.East,
+        [Direction.Up]: Direction.Down,
+        [Direction.Down]: Direction.Up
     }[direction];
 }
