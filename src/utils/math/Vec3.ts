@@ -130,5 +130,9 @@ export class Vec3 {
         }
     }
 
+    static vecLength(lhs: Vector3): number {
+        return Math.sqrt(lhs.x * lhs.x + lhs.y * lhs.y + lhs.z * lhs.z);
+    }
+
     static ZERO = Vec3.from(0, 0, 0);
 }
