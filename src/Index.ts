@@ -1,7 +1,6 @@
 export * from './utils/animation/Animation'
 export * from './utils/animation/AnimationPlayer'
 export * from './components/block/GenericBlockEntity'
-export * from './components/block/DirectionalGenericBlockEntity'
 export * from './components/items/ItemDurability'
 export * from './mixins/entity/EntityComponents'
 export * from './mixins/block/BlockEntity'
