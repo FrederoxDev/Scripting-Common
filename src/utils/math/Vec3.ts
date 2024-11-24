@@ -1,6 +1,8 @@
 import { Vector2, Vector3 } from "@minecraft/server";
 import { Vec2 } from "./Vec2.js"
 
+export type Vec3Key = string;
+
 export class Vec3 {
     static from(x: number, y: number, z: number): Vector3;
     static from(x: [number, number, number]): Vector3;
@@ -132,6 +134,19 @@ export class Vec3 {
 
     static vecLength(lhs: Vector3): number {
         return Math.sqrt(lhs.x * lhs.x + lhs.y * lhs.y + lhs.z * lhs.z);
+    }
+
+    static asKey(lhs: Vector3): Vec3Key {
+        return `${lhs.x},${lhs.y},${lhs.z}`;
+    }
+
+    static fromKey(key: string): Vector3 {
+        const components = key.split(",").map(v => Number(v));
+        return {
+            x: components[0],
+            y: components[1],
+            z: components[2]
+        }
     }
 
     static ZERO = Vec3.from(0, 0, 0);

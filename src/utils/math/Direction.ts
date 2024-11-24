@@ -25,6 +25,10 @@ export function DirectionFromCardinalString(cardinal: string): Direction {
     throw new Error(`Bad string '${cardinal}' passed to DirectionFromCardinalString`);
 }
 
+export function DirectionToCardinalString(cardinal: Direction): string {
+    return cardinal.toLocaleLowerCase();
+}
+
 export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
     const lhsIndex = CARDINAL_DIRS.indexOf(lhs);
     const rhsIndex = CARDINAL_DIRS.indexOf(rhs);
