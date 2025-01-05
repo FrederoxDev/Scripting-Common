@@ -1,12 +1,13 @@
-import { BlockComponentOnPlaceEvent, BlockComponentPlayerDestroyEvent, BlockCustomComponent, Entity, Vector3 } from "@minecraft/server"
+import { Block, BlockComponentOnPlaceEvent, BlockComponentPlayerDestroyEvent, Entity, Vector3 } from "@minecraft/server"
 import { Vec3 } from "../../utils/math/Vec3";
-import { DirectionToAngle } from "../../Index";
+import { BlockCustomComponentV2, DirectionToAngle } from "../../Index";
+import { assert } from "console";
 
 /**
  * A base class for all singlular block entity needs.
  * @ If overriding onPlace or onPlayerDestroy ensure you call the super.x method 
  */
-export class GenericBlockEntity implements BlockCustomComponent {
+export class GenericBlockEntity implements BlockCustomComponentV2 {
     defaultName: string | undefined;
     entityIdentifier: string;
     spawnOffset: Vector3;
@@ -61,5 +62,9 @@ export class GenericBlockEntity implements BlockCustomComponent {
     onPlayerDestroy(ev: BlockComponentPlayerDestroyEvent): void {
         const entity = ev.block.getBlockEntity(this.entityIdentifier);
         entity?.remove();
+    }
+
+    getBlockEntity(block: Block): Entity | undefined {
+        return block.getBlockEntity(this.entityIdentifier);
     }
 };

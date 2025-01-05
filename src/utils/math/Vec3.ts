@@ -149,5 +149,31 @@ export class Vec3 {
         }
     }
 
+    static min(lhs: Vector3, rhs: Vector3): Vector3 {
+        return Vec3.from(
+            Math.min(lhs.x, rhs.x),
+            Math.min(lhs.y, rhs.y),
+            Math.min(lhs.z, rhs.z)
+        )
+    }
+
+    static max(lhs: Vector3, rhs: Vector3): Vector3 {
+        return Vec3.from(
+            Math.max(lhs.x, rhs.x),
+            Math.max(lhs.y, rhs.y),
+            Math.max(lhs.z, rhs.z)
+        )
+    }
+
+    static dot(lhs: Vector3, rhs: Vector3): number {
+        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+    }
+
+    static normalize(lhs: Vector3): Vector3 {
+        const length = Vec3.vecLength(lhs);
+        if (length === 0) return Vec3.ZERO;
+        return Vec3.div(lhs, length);
+    }
+
     static ZERO = Vec3.from(0, 0, 0);
 }

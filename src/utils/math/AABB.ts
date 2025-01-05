@@ -1,5 +1,6 @@
-import { Vector3 } from "@minecraft/server";
+import { Block, Vector2, Vector3 } from "@minecraft/server";
 import { Vec3 } from "./Vec3"
+import { assert } from "../error/Error";
 
 export class AABB {
     min: Vector3;
@@ -45,5 +46,54 @@ export class AABB {
                 }
             }
         }
+    }
+
+    static fromPositions(positions: Vector3[]) {
+        assert(positions.length > 0, "Cannot create an AABB from an empty list of vectors");
+        
+        let min = positions[0];
+        let max = positions[0];
+
+        positions.forEach(pos => {
+            min = Vec3.min(min, pos)
+            max = Vec3.max(max, pos)
+        });
+
+        return new AABB(min, max);
+    }
+
+    isAabbVisible(origin: Vector3, headRotation: Vector3, fov: number) {
+        const corners = [
+            Vec3.from(this.min.x, this.min.y, this.min.z),
+            Vec3.from(this.min.x, this.min.y, this.max.z),
+            Vec3.from(this.min.x, this.max.y, this.min.z),
+            Vec3.from(this.min.x, this.max.y, this.max.z),
+            Vec3.from(this.max.x, this.min.y, this.min.z),
+            Vec3.from(this.max.x, this.min.y, this.max.z),
+            Vec3.from(this.max.x, this.max.y, this.min.z),
+            Vec3.from(this.max.x, this.max.y, this.max.z),
+        ]
+
+        const fovRadians = (fov / 2) * (Math.PI / 180);
+        const fovCos = Math.cos(fovRadians);
+
+        for (const corner of corners) {
+            const toCorner = Vec3.normalize(Vec3.sub(corner, origin));
+            const dotProduct = Vec3.dot(headRotation, toCorner);
+
+            if (dotProduct > fovCos) {
+                return true; // Corner is within the FOV
+            }
+        }
+
+        const center = Vec3.average(this.min, this.max);
+        const toCenter = Vec3.normalize(Vec3.sub(center, origin));
+        const centerDotProduct = Vec3.dot(headRotation, toCenter);
+
+        if (centerDotProduct > fovCos) {
+            return true; // Center is within the FOV
+        }
+
+        return false; // No corners are visible
     }
 }

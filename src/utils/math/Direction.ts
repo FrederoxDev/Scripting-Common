@@ -38,6 +38,15 @@ export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
     return CARDINAL_DIRS[newIndex];
 }
 
+export function InverseRelativeRotate(lhs: Direction, rhs: Direction): Direction {
+    const lhsIndex = CARDINAL_DIRS.indexOf(lhs);
+    const rhsIndex = CARDINAL_DIRS.indexOf(rhs);
+
+    let newIndex = lhsIndex - rhsIndex;
+    if (newIndex < 0) newIndex += 4; 
+    return CARDINAL_DIRS[newIndex];
+}
+
 export function DirectionToVec3(direction: Direction) {
     return {
         [Direction.North]: Vec3.from(0, 0, -1),
