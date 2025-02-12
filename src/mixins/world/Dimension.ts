@@ -28,3 +28,4 @@ Dimension.prototype.getClosestPlayer = function(position: Vector3, maxDistance: 
 
     if (closestDistance > maxDistance) return undefined;
     return closestPlayer;
+}
