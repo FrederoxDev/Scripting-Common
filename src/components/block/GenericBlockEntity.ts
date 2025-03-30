@@ -24,6 +24,7 @@ export class GenericBlockEntity implements BlockCustomComponentV2 {
     ) {
         this.onPlace = this.onPlace.bind(this);
         this.onPlayerDestroy = this.onPlayerDestroy.bind(this);
+        this.createBlockEntity = this.createBlockEntity.bind(this);
 
         this.entityIdentifier = entityIdentifier;
         this.spawnOffset = Vec3.ZERO;
@@ -43,25 +44,29 @@ export class GenericBlockEntity implements BlockCustomComponentV2 {
     }
 
     onPlace(ev: BlockComponentOnPlaceEvent): Entity {
+        return this.createBlockEntity(ev.block);
+    }
+
+    onPlayerDestroy(ev: BlockComponentPlayerDestroyEvent): void {
+        const entity = ev.block.getBlockEntity(this.entityIdentifier);
+        entity?.remove();
+    }
+
+    createBlockEntity(block: Block): Entity {
         // Entity Spawn Location + Offset
-        const entity = ev.dimension.spawnEntity(this.entityIdentifier, Vec3.add(ev.block.location, this.spawnOffset));
+        const entity = block.dimension.spawnEntity(this.entityIdentifier, Vec3.add(block.location, this.spawnOffset));
 
         // Entity default name component
         if (this.defaultName !== undefined) entity.nameTag = this.defaultName;
 
         // Entity rotation component
         if (this.entityRotationProperty !== undefined) {
-            let angle = DirectionToAngle(ev.block.getCardinalDirection()) + this.entityRotationOffset!;
+            let angle = DirectionToAngle(block.getCardinalDirection()) + this.entityRotationOffset!;
             angle = angle >= 360 ? angle - 360 : angle;
             entity.setProperty(this.entityRotationProperty, angle);
         }
 
         return entity;
-    }
-
-    onPlayerDestroy(ev: BlockComponentPlayerDestroyEvent): void {
-        const entity = ev.block.getBlockEntity(this.entityIdentifier);
-        entity?.remove();
     }
 
     getBlockEntity(block: Block): Entity | undefined {
