@@ -1,9 +1,10 @@
-import { Entity, EntityComponent, EntityComponentTypes, EntityEquippableComponent, EntityInventoryComponent } from "@minecraft/server";
+import { Entity, EntityComponent, EntityComponentTypes, EntityEquippableComponent, EntityInventoryComponent, EntityTypeFamilyComponent } from "@minecraft/server";
 
 declare module "@minecraft/server" {
     interface Entity {
         getInventory(): EntityInventoryComponent;
         getEquippable(): EntityEquippableComponent;
+        getTypeFamily(): EntityTypeFamilyComponent;
     }
 }
 
@@ -19,4 +20,8 @@ Entity.prototype.getInventory = function() {
 
 Entity.prototype.getEquippable = function() {
     return _getComponent<EntityEquippableComponent>(this, EntityComponentTypes.Equippable);
+}
+
+Entity.prototype.getTypeFamily = function() {
+    return _getComponent<EntityTypeFamilyComponent>(this, EntityComponentTypes.TypeFamily);
 }

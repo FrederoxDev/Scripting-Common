@@ -63,4 +63,11 @@ export class VirtualContainer {
         }
         return undefined;
     }
+
+    forEachItem(predicate: (item: ItemStack) => void): void {
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = this.container.getSlot(this.slots[i]);
+            if (slot.hasItem()) predicate(slot.getItem()!);
+        }
+    }
 }
