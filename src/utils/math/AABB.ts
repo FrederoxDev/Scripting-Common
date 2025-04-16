@@ -23,7 +23,7 @@ export class AABB {
     /**
      * Checks if the given position is inside of the AABB area
      */
-    intersects(point: Vector3): boolean {
+    hasPoint(point: Vector3): boolean {
         let min = this.min;
         let max = this.max;
 
@@ -60,6 +60,19 @@ export class AABB {
         });
 
         return new AABB(min, max);
+    }
+
+    /**
+     * Checks if this AABB intersects with another AABB
+     * @param other {AABB} The other AABB to check for intersection
+     * @returns {boolean} True if the AABBs intersect, false otherwise
+     */
+    intersects(other: AABB): boolean {
+        return !(
+            this.max.x < other.min.x || this.min.x > other.max.x ||
+            this.max.y < other.min.y || this.min.y > other.max.y ||
+            this.max.z < other.min.z || this.min.z > other.max.z
+        );
     }
 
     isAabbVisible(origin: Vector3, headRotation: Vector3, fov: number) {
