@@ -28,6 +28,7 @@ export * from './utils/serde/VersionedData'
 export * from './utils/time/Time'
 export * from './utils/ui/ScriptBindings'
 export * from './utils/item/ItemAux'
+export * from './utils/utility/Pair'
 import './utils/error/BetterLogs'
 
 ///////////////////////////////////////////////////////////////////

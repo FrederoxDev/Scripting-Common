@@ -1,0 +1,1 @@
+export type Pair<L, R> = [L, R];
