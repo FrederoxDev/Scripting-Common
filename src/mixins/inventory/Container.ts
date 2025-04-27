@@ -8,6 +8,8 @@ declare module "@minecraft/server" {
          * Returns a map containing item identifiers to the number of that item
          */
         getContentOverview(): Map<string, number>;
+
+        forEachItem(predicate: (item: ItemStack) => void): void;
     }
 }
 
@@ -19,6 +21,14 @@ Container.prototype.findSlot = function(predicate) {
     }
     
     return undefined;
+}
+
+Container.prototype.forEachItem = function(predicate) {
+    for (let i = 0; i < this.size; i++) {
+        const slot = this.getSlot(i);
+        if (!slot.hasItem()) continue;
+        predicate(slot.getItem()!);
+    }
 }
 
 Container.prototype.getContentOverview = function() {
