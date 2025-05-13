@@ -69,6 +69,13 @@ export class InventoryView {
         }
     }
 
+    forEachSlot(container: Container, predicate: (slot: ContainerSlot) => void): void {
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = container.getSlot(this.slots[i]);
+            predicate(slot);
+        }
+    }
+
     /**
      * Attempts to add an item stack to the container
      * - if unsuccessful, it will return false and the item stack will be unchanged.
