@@ -69,10 +69,11 @@ export class InventoryView {
         }
     }
 
-    forEachSlot(container: Container, predicate: (slot: ContainerSlot) => void): void {
+    forEachSlot(container: Container, predicate: (slot: ContainerSlot, realIndex: number) => void): void {
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
-            predicate(slot);
+            const index = this.slots[i];
+            const slot = container.getSlot(index);
+            predicate(slot, index);
         }
     }
 
