@@ -1,4 +1,4 @@
-import { Entity, World } from "@minecraft/server";
+import { Entity, ItemStack, World } from "@minecraft/server";
 
 /**
  * A common interface for any data that would be likely to change across updates.
@@ -8,7 +8,7 @@ export interface VersionedData {
     format_version: number;
 }
 
-export function deserialize<T extends VersionedData>(dataSource: Entity | World, identifier: string): T | undefined {
+export function deserialize<T extends VersionedData>(dataSource: Entity | World | ItemStack, identifier: string): T | undefined {
     const data = dataSource.getDynamicProperty(identifier) as string | undefined;
     if (data === undefined) return undefined;
     return JSON.parse(data) as T;
