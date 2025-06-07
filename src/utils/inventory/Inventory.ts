@@ -53,3 +53,19 @@ export function GiveOneDropIfFull(entity: Entity, stack: ItemStack) {
 
     inventory.container.addItem(stack);
 }
+
+/**
+ * Safely gives an item to an entity with the given amount
+ */
+export function GiveItemByAmount(entity: Entity, itemStack: ItemStack, amount?: number) {
+    amount ??= itemStack.amount;
+    const maxStackSize = itemStack.maxAmount;
+    const numStacks = Math.ceil(amount / maxStackSize);
+    let amountRemaining = amount;
+
+    for (let i = 0; i < numStacks; i++) {
+        const stack = new ItemStack(itemStack.typeId, Math.min(maxStackSize, amountRemaining));
+        GiveOneDropIfFull(entity, stack);
+        amountRemaining -= Math.min(maxStackSize, amountRemaining);
+    }
+}
