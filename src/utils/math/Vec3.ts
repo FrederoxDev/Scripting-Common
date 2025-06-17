@@ -90,36 +90,40 @@ export class Vec3 {
         )
     }
 
-    static isVec3(lhs: any): boolean {
-        return typeof lhs === "object" && lhs["x"] !== undefined && lhs["y"] !== undefined && lhs["z"] !== undefined;
+    static isVec3(lhs: unknown): lhs is { x: number; y: number; z: number } {
+        return typeof lhs === "object" && 
+            lhs !== null && 
+            "x" in lhs && 
+            "y" in lhs && 
+            "z" in lhs;
     }
 
     static rotateAroundX(lhs: Vector3, degrees: number): Vector3 {
-        let radians = degrees * (Math.PI / 180);
+        const radians = degrees * (Math.PI / 180);
     
-        let x = lhs.x;
-        let y = lhs.y * Math.cos(radians) - lhs.z * Math.sin(radians);
-        let z = lhs.y * Math.sin(radians) + lhs.z * Math.cos(radians);
+        const x = lhs.x;
+        const y = lhs.y * Math.cos(radians) - lhs.z * Math.sin(radians);
+        const z = lhs.y * Math.sin(radians) + lhs.z * Math.cos(radians);
     
         return { x, y, z };
     }
 
     static rotateAroundY(lhs: Vector3, degrees: number): Vector3 {
-        let radians = degrees * (Math.PI / 180);
+        const radians = degrees * (Math.PI / 180);
     
-        let x = lhs.x * Math.cos(radians) - lhs.z * Math.sin(radians);
-        let y = lhs.y;
-        let z = lhs.x * Math.sin(radians) + lhs.z * Math.cos(radians);
+        const x = lhs.x * Math.cos(radians) - lhs.z * Math.sin(radians);
+        const y = lhs.y;
+        const z = lhs.x * Math.sin(radians) + lhs.z * Math.cos(radians);
     
         return { x, y, z };
     }    
 
     static rotateAroundZ(lhs: Vector3, degrees: number): Vector3 {
-        let radians = degrees * (Math.PI / 180);
+        const radians = degrees * (Math.PI / 180);
     
-        let x = lhs.x * Math.cos(radians) - lhs.y * Math.sin(radians);
-        let y = lhs.x * Math.sin(radians) + lhs.y * Math.cos(radians);
-        let z = lhs.z;
+        const x = lhs.x * Math.cos(radians) - lhs.y * Math.sin(radians);
+        const y = lhs.x * Math.sin(radians) + lhs.y * Math.cos(radians);
+        const z = lhs.z;
     
         return { x, y, z };
     }

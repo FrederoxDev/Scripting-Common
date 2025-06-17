@@ -1,4 +1,4 @@
-export function assert(conditional: boolean, ...data: any[]): asserts conditional {
+export function assert(conditional: boolean, ...data: unknown[]): asserts conditional {
     if (conditional) return;
 
     throw new Error(data.map((arg) => {

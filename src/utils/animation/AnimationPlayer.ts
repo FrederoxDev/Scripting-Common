@@ -1,5 +1,4 @@
-import { Vector3 } from "@minecraft/server";
-import { AnimationVariable, Animation, Keyframe, AnimationInstance, AnimationCallback, AnimationActionCallback } from "./Animation";
+import { Animation, Keyframe, AnimationInstance, AnimationCallback, AnimationActionCallback } from "./Animation";
 
 export class AnimationPlayer {
     playingAnimations: AnimationInstance[] = [];
@@ -11,7 +10,7 @@ export class AnimationPlayer {
 
     tickAnimations(): void {
         const timeStamp = Date.now();
-        let deltaTime = timeStamp - (this.lastTickTime === 0 ? timeStamp : this.lastTickTime);
+        const deltaTime = timeStamp - (this.lastTickTime === 0 ? timeStamp : this.lastTickTime);
         this.lastTickTime = timeStamp;
 
         this.playingAnimations = this.playingAnimations

@@ -1,4 +1,4 @@
-import { Entity, EntityRideableComponent, system, world } from "@minecraft/server";
+import { Entity, EntityRideableComponent, system } from "@minecraft/server";
 import { assert } from "../../utils/error/Error";
 
 export interface EntityComponentMountedEvent {

@@ -1,4 +1,4 @@
-import { ItemComponentBeforeDurabilityDamageEvent, ItemComponentCompleteUseEvent, ItemComponentConsumeEvent, ItemComponentHitEntityEvent, ItemComponentMineBlockEvent, ItemComponentUseEvent, ItemComponentUseOnEvent, ItemCustomComponent, world } from "@minecraft/server";
+import { ItemComponentBeforeDurabilityDamageEvent, ItemComponentCompleteUseEvent, ItemComponentConsumeEvent, ItemComponentHitEntityEvent, ItemComponentMineBlockEvent, ItemComponentUseEvent, ItemComponentUseOnEvent, ItemCustomComponent, system, world } from "@minecraft/server";
 
 const componentsToRegister: [string, ItemCustomComponent][] = [];
 
@@ -16,8 +16,8 @@ export class ScriptItem implements ItemCustomComponent {
     onUseOn?(ev: ItemComponentUseOnEvent): void;
 }
 
-world.beforeEvents.worldInitialize.subscribe(e => {
+system.beforeEvents.startup.subscribe(e => {
     componentsToRegister.forEach(component => {
         e.itemComponentRegistry.registerCustomComponent(component[0], component[1]);
     })
-})
+});

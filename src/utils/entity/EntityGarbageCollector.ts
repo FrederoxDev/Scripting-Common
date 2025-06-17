@@ -18,7 +18,7 @@ export class EntityGarbageCollector {
         for (let i = 0; i < maxAttempts; i++) {
             current.forEach(eID => {
                 const entity = world.getEntity(eID);
-                if (!entity || !entity.isValid()) {
+                if (!entity || !entity.isValid) {
                     nextRun.push(eID);
                     return;
                 }

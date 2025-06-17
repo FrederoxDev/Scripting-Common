@@ -59,7 +59,7 @@ export function DirectionToVec3(direction: Direction) {
 }
 
 export function MoveInDirectionFrom(start: Vector3, direction: Direction, distance: number): Vector3 {
-    let movement = DirectionToVec3(direction);
+    const movement = DirectionToVec3(direction);
 
     return {
         "x": start.x + movement.x * distance,
