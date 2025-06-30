@@ -46,12 +46,7 @@ export class GenericBlockEntity implements BlockCustomComponentV2 {
         return this.createBlockEntity(ev.block);
     }
 
-    // onPlayerDestroy(ev: BlockComponentPlayerDestroyEvent): void {
-    //     const entity = ev.block.getBlockEntity(this.entityIdentifier);
-    //     entity?.remove();
-    // }
-
-    onPlayerBreak(ev: BlockComponentPlayerBreakEvent, params: CustomComponentParameters): void {
+    onPlayerBreak(ev: BlockComponentPlayerBreakEvent, _params: CustomComponentParameters): void {
         const entity = ev.block.getBlockEntity(this.entityIdentifier);
         entity?.remove();
     }

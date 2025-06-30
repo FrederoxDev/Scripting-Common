@@ -1,4 +1,4 @@
-import { system, world } from "@minecraft/server";
+import { system } from "@minecraft/server";
 import { BlockCustomComponentV2 } from "./BlockCustomComponentV2";
 
 const componentsToRegister: [string, BlockCustomComponentV2][] = [];

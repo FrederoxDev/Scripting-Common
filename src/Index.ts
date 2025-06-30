@@ -49,3 +49,5 @@ export function getProjectNamespace() {
     assert(projectNamespace !== undefined, "initializeScriptingCommon must be called.");
     return projectNamespace;
 }
+
+export function t() {}

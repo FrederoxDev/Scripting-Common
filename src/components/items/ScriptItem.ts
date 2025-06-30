@@ -1,4 +1,4 @@
-import { ItemComponentBeforeDurabilityDamageEvent, ItemComponentCompleteUseEvent, ItemComponentConsumeEvent, ItemComponentHitEntityEvent, ItemComponentMineBlockEvent, ItemComponentUseEvent, ItemComponentUseOnEvent, ItemCustomComponent, system, world } from "@minecraft/server";
+import { ItemComponentBeforeDurabilityDamageEvent, ItemComponentCompleteUseEvent, ItemComponentConsumeEvent, ItemComponentHitEntityEvent, ItemComponentMineBlockEvent, ItemComponentUseEvent, ItemComponentUseOnEvent, ItemCustomComponent, system } from "@minecraft/server";
 
 const componentsToRegister: [string, ItemCustomComponent][] = [];
 
