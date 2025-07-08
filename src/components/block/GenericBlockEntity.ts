@@ -42,7 +42,7 @@ export class GenericBlockEntity implements BlockCustomComponentV2 {
         this.entityRotationOffset = entityRotationOffset;
     }
 
-    onPlace(ev: BlockComponentOnPlaceEvent): Entity {
+    onPlace(ev: BlockComponentOnPlaceEvent, _params: CustomComponentParameters): Entity {
         return this.createBlockEntity(ev.block);
     }
 

@@ -23,6 +23,10 @@ export class Vec3 {
         return Vec3.from(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
     }
 
+    static addY(lhs: Vector3, rhs: number): Vector3 {
+        return Vec3.from(lhs.x, lhs.y + rhs, lhs.z);
+    }
+
     static sub(lhs: Vector3, rhs: Vector3): Vector3 {
         return Vec3.from(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
     }
