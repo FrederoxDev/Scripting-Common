@@ -4,9 +4,12 @@ import { Vec2 } from "./Vec2.js"
 export type Vec3Key = string;
 
 export class Vec3 {
+    /** @__PURE__ */
     static from(x: number, y: number, z: number): Vector3;
+    /** @__PURE__ */
     static from(x: [number, number, number]): Vector3;
 
+    /** @__PURE__ */
     static from(x: number | number[], y?: number, z?: number): Vector3 {
         if (Array.isArray(x)) {
             return { x: x[0], y: x[1], z: x[2] }
@@ -19,12 +22,22 @@ export class Vec3 {
         throw new Error("Invalid Arguments");
     }
 
+    /** @__PURE__ */
     static add(lhs: Vector3, rhs: Vector3): Vector3 {
-        return Vec3.from(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z);
+        return {
+            x: lhs.x + rhs.x,
+            y: lhs.y + rhs.y,
+            z: lhs.z + rhs.z
+        }
     }
 
+    /** @__PURE__ */
     static addY(lhs: Vector3, rhs: number): Vector3 {
-        return Vec3.from(lhs.x, lhs.y + rhs, lhs.z);
+        return {
+            x: lhs.x,
+            y: lhs.y + rhs,
+            z: lhs.z
+        }
     }
 
     static sub(lhs: Vector3, rhs: Vector3): Vector3 {
