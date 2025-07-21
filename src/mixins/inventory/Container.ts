@@ -1,4 +1,4 @@
-import { ItemStack, Container } from "@minecraft/server";
+import { ItemStack, Container, ContainerSlot } from "@minecraft/server";
 
 declare module "@minecraft/server" {
     interface Container {
