@@ -4,15 +4,6 @@
   "description": "Generic helper code for the MCBE Scripting-API's",
   "author": "FrederoxDev",
   "license": "MIT",
-  "devDependencies": {
-    "@eslint/js": "^9.13.0",
-    "@types/node": "^22.1.0",
-    "esbuild": "^0.25.5",
-    "eslint": "^9.13.0",
-    "globals": "^16.2.0",
-    "typescript": "^5.5.4",
-    "typescript-eslint": "^8.10.0"
-  },
   "scripts": {
     "release": "npm version patch && git push && tsc && npm publish",
     "build": "tsc",
@@ -23,8 +14,13 @@
   "main": "dist/Index.js",
   "dependencies": {
     "@eslint/js": "^9.29.0",
-    "@minecraft/server": "2.0.0",
     "esbuild": "^0.25.0",
     "typescript-eslint": "^8.34.1"
+  },
+  "peerDependencies": {
+    "@minecraft/server": "2.0.0"
+  },
+  "devDependencies": {
+    "@minecraft/server": "2.0.0"
   }
 }
