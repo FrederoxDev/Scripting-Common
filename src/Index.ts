@@ -31,6 +31,7 @@ export * from './utils/time/Time'
 export * from './utils/ui/ScriptBindings'
 export * from './utils/item/ItemAux'
 export * from './utils/utility/Pair'
+export * from './utils/systems/ComponentSystem'
 import './utils/error/BetterLogs'
 
 ///////////////////////////////////////////////////////////////////
