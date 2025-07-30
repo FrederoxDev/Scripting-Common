@@ -1,4 +1,4 @@
-import { ItemStack } from "@minecraft/server";
+import { BlockPermutation, ItemStack } from "@minecraft/server";
 import { assert } from "../../utils/error/Error";
 
 declare module "@minecraft/server" {
@@ -26,6 +26,10 @@ declare module "@minecraft/server" {
          * @returns The item stack with the new amount or undefined if the amount exceeds the maximum stack size.
          */
         tryAddAmount(amount: number): ItemStack | undefined;
+
+        isBlockitem(): boolean;
+
+        isHandEquipped(): boolean;
     }
 }
 
@@ -57,4 +61,20 @@ ItemStack.prototype.tryAddAmount = function(amount) {
     const newItem = this.clone();
     newItem.amount = totalAmount;
     return newItem;
+}
+
+ItemStack.prototype.isBlockitem = function() {
+    try {
+        // throws if the typeId is not a block item
+        BlockPermutation.resolve(this.typeId);
+        return true;
+    }
+    catch { /* empty */ }
+
+    return false;
+}
+
+ItemStack.prototype.isHandEquipped = function() {
+    console.log("todo implement ItemStack.isHandEquipped");
+    return false;
 }
