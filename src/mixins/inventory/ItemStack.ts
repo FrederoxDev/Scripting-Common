@@ -1,5 +1,6 @@
 import { BlockPermutation, ItemStack } from "@minecraft/server";
 import { assert } from "../../utils/error/Error";
+import { MinecraftItemTypes } from "@minecraft/vanilla-data";
 
 declare module "@minecraft/server" {
     interface ItemStack {
@@ -29,7 +30,7 @@ declare module "@minecraft/server" {
 
         isBlockitem(): boolean;
 
-        isHandEquipped(): boolean;
+        // isHandEquipped(): boolean;
     }
 }
 
@@ -74,7 +75,18 @@ ItemStack.prototype.isBlockitem = function() {
     return false;
 }
 
-ItemStack.prototype.isHandEquipped = function() {
-    console.log("todo implement ItemStack.isHandEquipped");
-    return false;
+// ItemStack.prototype.isHandEquipped = function() {
+//     console.log("todo implement ItemStack.isHandEquipped");
+//     return false;
+// }
+
+const handEquippedItems = new Set<string>([
+    MinecraftItemTypes.Stick
+]);
+
+const handEquippedKeywords = ["sword", "pickaxe", "axe", "shovel", "hoe"];
+
+export function IsVanillaItemHandEquipped(itemStack: ItemStack): boolean {
+    const id = itemStack.typeId;
+    return handEquippedKeywords.some(keyword => id.includes(keyword)) || handEquippedItems.has(id);
 }
