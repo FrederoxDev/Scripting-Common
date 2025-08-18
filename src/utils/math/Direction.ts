@@ -30,6 +30,8 @@ export function DirectionToCardinalString(cardinal: Direction): string {
 }
 
 export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
+    if (rhs === Direction.Up || rhs === Direction.Down) return rhs;
+
     const lhsIndex = CARDINAL_DIRS.indexOf(lhs);
     const rhsIndex = CARDINAL_DIRS.indexOf(rhs);
 
@@ -39,6 +41,8 @@ export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
 }
 
 export function InverseRelativeRotate(lhs: Direction, rhs: Direction): Direction {
+    if (rhs === Direction.Up || rhs === Direction.Down) return rhs;
+
     const lhsIndex = CARDINAL_DIRS.indexOf(lhs);
     const rhsIndex = CARDINAL_DIRS.indexOf(rhs);
 

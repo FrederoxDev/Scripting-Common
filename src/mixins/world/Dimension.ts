@@ -1,4 +1,4 @@
-import { Player, Vector3, Dimension } from "@minecraft/server";
+import { Player, Vector3, Dimension, world } from "@minecraft/server";
 import { Vec3 } from "../../Index";
 
 declare module "@minecraft/server" {

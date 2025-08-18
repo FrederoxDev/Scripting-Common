@@ -10,7 +10,7 @@ declare module "@minecraft/server" {
          * @param other - The other item stack to merge with.
          * @return A new ItemStack with the merged amount, or undefined if merging is not possible.
          */
-        tryMerge(other: ItemStack): ItemStack | undefined;
+        tryMerge(other: ItemStack | undefined): ItemStack | undefined;
 
         /**
          * Takes a specified amount from the item stack.
@@ -35,6 +35,10 @@ declare module "@minecraft/server" {
 }
 
 ItemStack.prototype.tryMerge = function(other) {
+    if (other === undefined) {
+        return this.clone();
+    }
+    
     if (!this.isStackableWith(other)) return undefined;
 
     const totalAmount = this.amount + other.amount;
