@@ -7,7 +7,8 @@ export class ComponentSystem<T> {
         this._internalRegistered[id] = component;
     }
 
-    get(id: string): T | undefined {
+    get(id: string | undefined): T | undefined {
+        if (id === undefined) return undefined;
         return this._internalRegistered[id];
     }
 
