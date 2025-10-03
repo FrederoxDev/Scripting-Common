@@ -32,11 +32,29 @@ export class Vec3 {
     }
 
     /** @__PURE__ */
+    static addX(lhs: Vector3, rhs: number): Vector3 {
+        return {
+            x: lhs.x + rhs,
+            y: lhs.y,
+            z: lhs.z
+        }
+    }
+
+    /** @__PURE__ */
     static addY(lhs: Vector3, rhs: number): Vector3 {
         return {
             x: lhs.x,
             y: lhs.y + rhs,
             z: lhs.z
+        }
+    }
+
+        /** @__PURE__ */
+    static addZ(lhs: Vector3, rhs: number): Vector3 {
+        return {
+            x: lhs.x,
+            y: lhs.y,
+            z: lhs.z + rhs
         }
     }
 
@@ -113,6 +131,14 @@ export class Vec3 {
             "x" in lhs && 
             "y" in lhs && 
             "z" in lhs;
+    }
+
+    static cross(lhs: Vector3, rhs: Vector3): Vector3 {
+        return {
+            x: lhs.y * rhs.z - lhs.z * rhs.y,
+            y: lhs.z * rhs.x - lhs.x * rhs.z,
+            z: lhs.x * rhs.y - lhs.y * rhs.x
+        };
     }
 
     static rotateAroundX(lhs: Vector3, degrees: number): Vector3 {

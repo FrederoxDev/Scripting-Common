@@ -1,0 +1,37 @@
+import { Entity, world, World } from "@minecraft/server";
+
+export class DynamicPropertyAccessor<T> {
+    propertyName: string;
+
+    constructor(propertyName: string) {
+        this.propertyName = propertyName;
+    }
+
+    set(entity: Entity | World, value: T): void {
+        entity.setDynamicProperty(this.propertyName, JSON.stringify(value));
+    }
+
+    get<Fallback extends T | undefined>(entity: Entity | World, fallback?: Fallback): T | Fallback {
+        const rawValue = entity.getDynamicProperty(this.propertyName);
+        if (rawValue === undefined) return fallback as Fallback;
+        return JSON.parse(rawValue as string) as T;
+    }
+}
+
+export class DynamicPropertyEntityAccessor {
+    propertyName: string;
+
+    constructor(propertyName: string) {
+        this.propertyName = propertyName;
+    }
+
+    set(entity: Entity | World, value: Entity | undefined): void {
+        entity.setDynamicProperty(this.propertyName, value?.id);
+    }
+
+    get(entity: Entity | World): Entity | undefined {
+        const rawValue = entity.getDynamicProperty(this.propertyName) as string | undefined;
+        if (rawValue === undefined) return undefined;
+        return world.getEntity(rawValue);
+    }
+}

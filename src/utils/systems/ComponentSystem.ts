@@ -17,4 +17,10 @@ export class ComponentSystem<T> {
         assert(component !== undefined, `Component with id ${id} is not registered`);
         return component;
     }
+
+    forEach(callback: (id: string, component: T) => void): void {
+        for (const id in this._internalRegistered) {
+            callback(id, this._internalRegistered[id]);
+        }
+    }
 }

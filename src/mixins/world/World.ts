@@ -28,12 +28,10 @@ let cachedPlayers: Player[] = [];
 
 world.afterEvents.worldLoad.subscribe(() => {
   cachedPlayers = world.getAllPlayers();
-  console.log(`cached World loaded with ${cachedPlayers.length} players.`);
 });
 
 world.afterEvents.playerJoin.subscribe((e) => {
   cachedPlayers.push(world.getEntity(e.playerId) as Player);
-  console.log(`cached Player ${e.playerName} joined the game.`, cachedPlayers);
 });
 
 world.beforeEvents.playerLeave.subscribe((e) => {

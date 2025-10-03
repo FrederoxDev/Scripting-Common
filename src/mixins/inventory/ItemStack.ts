@@ -30,7 +30,7 @@ declare module "@minecraft/server" {
 
         isBlockitem(): boolean;
 
-        // isHandEquipped(): boolean;
+        isSameAs(other: ItemStack | undefined): boolean;
     }
 }
 
@@ -79,10 +79,10 @@ ItemStack.prototype.isBlockitem = function() {
     return false;
 }
 
-// ItemStack.prototype.isHandEquipped = function() {
-//     console.log("todo implement ItemStack.isHandEquipped");
-//     return false;
-// }
+ItemStack.prototype.isSameAs = function(other) {
+    if (other === undefined) return false;
+    return this.typeId === other.typeId && this.amount === other.amount && this.getDynamicPropertyTotalByteCount() === other.getDynamicPropertyTotalByteCount();
+}
 
 const handEquippedItems = new Set<string>([
     MinecraftItemTypes.Stick
@@ -92,5 +92,5 @@ const handEquippedKeywords = ["sword", "pickaxe", "axe", "shovel", "hoe"];
 
 export function IsVanillaItemHandEquipped(itemStack: ItemStack): boolean {
     const id = itemStack.typeId;
-    return handEquippedKeywords.some(keyword => id.includes(keyword)) || handEquippedItems.has(id);
+    return handEquippedKeywords.some(keyword => id.startsWith("minecraft:") && (id.includes(keyword)) || handEquippedItems.has(id));
 }

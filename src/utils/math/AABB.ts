@@ -39,7 +39,7 @@ export class AABB {
      */
     forEachBlock(callback: (position: Vector3) => void) {
         for (let x = this.min.x; x <= this.max.x; x++) {
-            for (let y = this.min.y; y <= this.min.y; y++) {
+            for (let y = this.min.y; y <= this.max.y; y++) {
                 for (let z = this.min.z; z <= this.max.z; z++) {
                     const position = Vec3.from(x, y, z);
                     callback(position)
@@ -58,6 +58,20 @@ export class AABB {
             min = Vec3.min(min, pos)
             max = Vec3.max(max, pos)
         });
+
+        return new AABB(min, max);
+    }
+
+    static fromAABBs(aabbs: AABB[]) {
+        assert(aabbs.length > 0, "Cannot create an AABB from an empty list of AABBs");
+
+        let min = aabbs[0].min;
+        let max = aabbs[0].max;
+
+        for (const box of aabbs) {
+            min = Vec3.min(min, box.min);
+            max = Vec3.max(max, box.max);
+        }
 
         return new AABB(min, max);
     }
@@ -108,5 +122,9 @@ export class AABB {
         }
 
         return false; // No corners are visible
+    }
+
+    key(): string {
+        return `${this.min.x},${this.min.y},${this.min.z},${this.max.x},${this.max.y},${this.max.z}`;
     }
 }
