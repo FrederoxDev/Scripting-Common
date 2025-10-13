@@ -1,4 +1,4 @@
-import { Entity, world, World } from "@minecraft/server";
+import { Entity, ItemStack, world, World } from "@minecraft/server";
 
 export class DynamicPropertyAccessor<T> {
     propertyName: string;
@@ -7,11 +7,11 @@ export class DynamicPropertyAccessor<T> {
         this.propertyName = propertyName;
     }
 
-    set(entity: Entity | World, value: T): void {
+    set(entity: Entity | World | ItemStack, value: T): void {
         entity.setDynamicProperty(this.propertyName, JSON.stringify(value));
     }
 
-    get<Fallback extends T | undefined>(entity: Entity | World, fallback?: Fallback): T | Fallback {
+    get<Fallback extends T | undefined>(entity: Entity | World | ItemStack, fallback?: Fallback): T | Fallback {
         const rawValue = entity.getDynamicProperty(this.propertyName);
         if (rawValue === undefined) return fallback as Fallback;
         return JSON.parse(rawValue as string) as T;
@@ -25,11 +25,11 @@ export class DynamicPropertyEntityAccessor {
         this.propertyName = propertyName;
     }
 
-    set(entity: Entity | World, value: Entity | undefined): void {
+    set(entity: Entity | World | ItemStack, value: Entity | undefined): void {
         entity.setDynamicProperty(this.propertyName, value?.id);
     }
 
-    get(entity: Entity | World): Entity | undefined {
+    get(entity: Entity | World | ItemStack): Entity | undefined {
         const rawValue = entity.getDynamicProperty(this.propertyName) as string | undefined;
         if (rawValue === undefined) return undefined;
         return world.getEntity(rawValue);

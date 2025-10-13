@@ -33,6 +33,8 @@ export * from './utils/ui/ScriptBindings'
 export * from './utils/item/ItemAux'
 export * from './utils/utility/Pair'
 export * from './utils/systems/ComponentSystem'
+export * from './utils/math/MathUtils'
+export * from './utils/serde/BinaryStream'
 import './utils/error/BetterLogs'
 
 ///////////////////////////////////////////////////////////////////
