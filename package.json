@@ -18,11 +18,11 @@
     "typescript-eslint": "^8.34.1"
   },
   "peerDependencies": {
-    "@minecraft/server": "^2.2.0",
-    "@minecraft/vanilla-data": "1.21.93"
+    "@minecraft/server": "^2.3.0",
+    "@minecraft/vanilla-data": "^1.21.120"
   },
   "devDependencies": {
-    "@minecraft/server": "^2.2.0",
-    "@minecraft/vanilla-data": "1.21.93"
+    "@minecraft/server": "^2.3.0",
+    "@minecraft/vanilla-data": "^1.21.120"
   }
 }

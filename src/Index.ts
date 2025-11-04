@@ -35,6 +35,7 @@ export * from './utils/utility/Pair'
 export * from './utils/systems/ComponentSystem'
 export * from './utils/math/MathUtils'
 export * from './utils/serde/BinaryStream'
+export * from './utils/serde/Palette'
 import './utils/error/BetterLogs'
 
 ///////////////////////////////////////////////////////////////////

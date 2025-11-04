@@ -1,4 +1,4 @@
-import { Player, Vector3, Dimension, world } from "@minecraft/server";
+import { Player, Vector3, Dimension, world, system } from "@minecraft/server";
 import { Vec3 } from "../../Index";
 
 declare module "@minecraft/server" {
@@ -10,6 +10,8 @@ declare module "@minecraft/server" {
          * @returns If the closest player is further than maxDistance, or no players are in this dimension, undefined is returned
          */
         getClosestPlayer(position: Vector3, maxDistance?: number): Player | undefined;
+
+        waitUntilChunkLoaded(position: Vector3): Promise<void>;
     }
 }
 
@@ -28,4 +30,13 @@ Dimension.prototype.getClosestPlayer = function(position: Vector3, maxDistance: 
 
     if (closestDistance > maxDistance) return undefined;
     return closestPlayer;
+}
+
+Dimension.prototype.waitUntilChunkLoaded = async function(position: Vector3): Promise<void> {
+    if (this.isChunkLoaded(position)) return;
+
+    while (true) {
+        await system.waitTicks(1);
+        if (this.isChunkLoaded(position)) return;
+    }
 }

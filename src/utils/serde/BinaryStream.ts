@@ -221,6 +221,21 @@ export class BinaryStream {
         this.writeUnsignedVarInt32(zigzagged);
     }
 
+    writeUnsignedVarInt16(value: number) {
+        value &= 0xFFFF; // Ensure 16-bit
+        while (value > 0x7F) {
+            this.writeUint8((value & 0x7F) | 0x80);
+            value >>>= 7;
+        }
+        this.writeUint8(value);
+    }
+
+    writeSignedVarInt16(value: number) {
+        // ZigZag encode signed 16-bit
+        const zigzagged = (value << 1) ^ (value >> 15);
+        this.writeUnsignedVarInt16(zigzagged);
+    }
+
     getBytes(): Uint8Array {
         return new Uint8Array(this.buffer, 0, this.offset);
     }
@@ -342,6 +357,27 @@ export class ReadOnlyBinaryStream {
 
     readSignedVarInt32(): number {
         const unsigned = this.readUnsignedVarInt32();
+        return (unsigned >>> 1) ^ -(unsigned & 1);
+    }
+
+    readUnsignedVarInt16(): number {
+        let result = 0;
+        let shift = 0;
+        let byte: number;
+
+        do {
+            byte = this.readUint8();
+            result |= (byte & 0x7F) << shift;
+            shift += 7;
+            if (shift > 16) throw new Error("VarInt16 too big");
+        } while (byte & 0x80);
+
+        return result & 0xFFFF;
+    }
+
+    readSignedVarInt16(): number {
+        const unsigned = this.readUnsignedVarInt16();
+        // ZigZag decode
         return (unsigned >>> 1) ^ -(unsigned & 1);
     }
 
