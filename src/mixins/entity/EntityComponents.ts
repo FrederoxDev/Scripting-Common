@@ -11,6 +11,8 @@ declare module "@minecraft/server" {
          */
         getSlot0Item(): ItemStack | undefined;
 
+        getSlot0(): ContainerSlot;
+
         setSlot0Item(stack: ItemStack | undefined): void;
 
         replaceMainhandVisual(stack: string): void;
@@ -39,6 +41,12 @@ Entity.prototype.getSlot0Item = function() {
     const component = this.getComponent(EntityComponentTypes.Inventory);
     if (component === undefined) throw new Error(`getItemInInventory expected Inventory Component on ${this.typeId}`);
     return component.container.getItem(0);
+}
+
+Entity.prototype.getSlot0 = function() {
+    const component = this.getComponent(EntityComponentTypes.Inventory);
+    if (component === undefined) throw new Error(`getItemInInventory expected Inventory Component on ${this.typeId}`);
+    return component.container.getSlot(0);
 }
 
 Entity.prototype.setSlot0Item = function(stack: ItemStack | undefined) {

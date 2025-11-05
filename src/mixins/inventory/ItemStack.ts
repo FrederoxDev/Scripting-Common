@@ -30,7 +30,10 @@ declare module "@minecraft/server" {
 
         isBlockitem(): boolean;
 
-        isSameAs(other: ItemStack | undefined): boolean;
+        /**
+         * Checks if two item stacks are completely identical in type, amount, and data.
+         */
+        isSameAs(other: ItemStack | undefined, respectAmount?: boolean): boolean;
     }
 }
 
@@ -79,10 +82,16 @@ ItemStack.prototype.isBlockitem = function() {
     return false;
 }
 
-ItemStack.prototype.isSameAs = function(other) {
-    if (other === undefined) return false;
-    return this.typeId === other.typeId && this.amount === other.amount && this.getDynamicPropertyTotalByteCount() === other.getDynamicPropertyTotalByteCount();
-}
+ItemStack.prototype.isSameAs = function(other, respectAmount = true) {
+    if (!other) return false;
+
+    if (this.typeId !== other.typeId) return false;
+    if (this.nameTag !== other.nameTag) return false;
+
+    if (respectAmount && this.amount !== other.amount) return false;
+
+    return true;
+};
 
 const handEquippedItems = new Set<string>([
     MinecraftItemTypes.Stick
