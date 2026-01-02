@@ -236,6 +236,18 @@ export class BinaryStream {
         this.writeUnsignedVarInt16(zigzagged);
     }
 
+    writeBigInt64(value: bigint) {
+        this.ensureCapacity(8);
+        this.view.setBigInt64(this.offset, value, true); // little-endian
+        this.offset += 8;
+    }
+
+    writeBigUint64(value: bigint) {
+        this.ensureCapacity(8);
+        this.view.setBigUint64(this.offset, value, true);
+        this.offset += 8;
+    }
+
     getBytes(): Uint8Array {
         return new Uint8Array(this.buffer, 0, this.offset);
     }
@@ -247,6 +259,14 @@ export class BinaryStream {
             binary += String.fromCharCode(bytes[i]);
         }
         return Base64.encode(new Uint8Array(binary.split("").map(c => c.charCodeAt(0))));
+    }
+
+    static fromReadOnlyStream(stream: ReadOnlyBinaryStream): BinaryStream {
+        const bytes = stream.getBytes();
+        const binaryStream = new BinaryStream(bytes.length);
+        new Uint8Array(binaryStream.buffer).set(bytes);
+        binaryStream.offset = bytes.length;
+        return binaryStream;
     }
 }
 
@@ -379,6 +399,24 @@ export class ReadOnlyBinaryStream {
         const unsigned = this.readUnsignedVarInt16();
         // ZigZag decode
         return (unsigned >>> 1) ^ -(unsigned & 1);
+    }
+
+    readBigInt64(): bigint {
+        this.ensureAvailable(8);
+        const val = this.view.getBigInt64(this.offset, true);
+        this.offset += 8;
+        return val;
+    }
+
+    readBigUint64(): bigint {
+        this.ensureAvailable(8);
+        const val = this.view.getBigUint64(this.offset, true);
+        this.offset += 8;
+        return val;
+    }
+
+    getBytes(): Uint8Array {
+        return new Uint8Array(this.view.buffer, 0, this.length);
     }
 
     toBase64(): string {

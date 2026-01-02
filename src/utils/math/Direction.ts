@@ -72,16 +72,17 @@ export function MoveInDirectionFrom(start: Vector3, direction: Direction, distan
     }
 }
 
-export function DirectionToAngle(direction: Direction): number {
-    return {
-        [Direction.North]: 0,
-        [Direction.East]: 90,
-        [Direction.South]: 180,
-        [Direction.West]: 270,
-        [Direction.Up]: 0,
-        [Direction.Down]: 0
-    }[direction];
-}
+// replaced with Direction.GetYAngle
+// export function DirectionToAngle(direction: Direction): number {
+//     return {
+//         [Direction.South]: 0,
+//         [Direction.West]: 90,
+//         [Direction.North]: 180,
+//         [Direction.East]: 270,
+//         [Direction.Up]: 0,
+//         [Direction.Down]: 0
+//     }[direction];
+// }
 
 export function InvertDirection(direction: Direction): Direction {
     return {
@@ -92,4 +93,121 @@ export function InvertDirection(direction: Direction): Direction {
         [Direction.Up]: Direction.Down,
         [Direction.Down]: Direction.Up
     }[direction];
+}
+
+export function AreOppositeDirections(dirA: Direction, dirB: Direction): boolean {
+    return InvertDirection(dirA) === dirB;
+}
+
+export enum Axis {
+    X,
+    Y,
+    Z
+}
+
+export function GetAxisOfDirections(dirA: Direction, dirB: Direction): Axis | undefined {
+    if (dirA === Direction.Up && dirB === Direction.Down) return Axis.Y;
+    if (dirA === Direction.Down && dirB === Direction.Up) return Axis.Y;
+    if (dirA === Direction.North && dirB === Direction.South) return Axis.Z;
+    if (dirA === Direction.South && dirB === Direction.North) return Axis.Z;
+    if (dirA === Direction.East && dirB === Direction.West) return Axis.X;
+    if (dirA === Direction.West && dirB === Direction.East) return Axis.X;
+    return undefined;
+}
+
+export enum AxisDirection {
+    Positive,
+    Negative
+}
+
+export namespace Axis {
+    export function ToAxis(direction: Direction): Axis {
+        if (direction === Direction.East || direction === Direction.West) {
+            return Axis.X;
+        }
+        if (direction === Direction.Up || direction === Direction.Down) {
+            return Axis.Y;
+        }
+        if (direction === Direction.North || direction === Direction.South) {
+            return Axis.Z;
+        }
+        throw new Error("Invalid direction");
+    }
+
+    export function ToDirection(axis: Axis, direction: AxisDirection): Direction {
+        if (axis === Axis.X) {
+            return direction === AxisDirection.Positive ? Direction.East : Direction.West;
+        }
+        if (axis === Axis.Y) {
+            return direction === AxisDirection.Positive ? Direction.Up : Direction.Down;
+        }
+        if (axis === Axis.Z) {
+            return direction === AxisDirection.Positive ? Direction.South : Direction.North;
+        }
+        throw new Error("Invalid axis");
+    }
+}
+
+declare module "@minecraft/server" {
+    export namespace Direction {
+        export function ToCardinalString(direction: Direction): string;
+        export function FromCardinalString(cardinal: string): Direction;
+
+        /**
+         * Rotates a Vector3 position assuming its relative to 0,0,0 facing north to the given direction
+         * @param vec 
+         * @param direction 
+         */
+        export function RotateVec3(vec: Vector3, direction: Direction): Vector3;
+
+        export function GetYAngle(direction: Direction): number;
+    }
+}
+
+Direction.ToCardinalString = function(direction: Direction): string {
+    return direction.toLocaleLowerCase();
+}
+
+Direction.FromCardinalString = function(cardinal: string): Direction {
+    const directions: Record<string, Direction> = {
+        north: Direction.North,
+        east: Direction.East,
+        south: Direction.South,
+        west: Direction.West,
+        up: Direction.Up,
+        down: Direction.Down
+    }
+    const result = directions[cardinal];
+    if (result !== undefined) return result;
+    throw new Error(`Bad string '${cardinal}' passed to Direction.FromCardinalString`);
+}
+
+Direction.RotateVec3 = function(vec: Vector3, facing: Direction): Vector3 {
+    switch (facing) {
+        case Direction.North:
+            return { ...vec }; // no rotation needed
+        case Direction.East:
+            return { x: -vec.z, y: vec.y, z: vec.x };
+        case Direction.South:
+            return { x: -vec.x, y: vec.y, z: -vec.z };
+        case Direction.West:
+            return { x: vec.z, y: vec.y, z: -vec.x };
+        default:
+            return { ...vec }; // Up/Down don’t rotate horizontally
+    }
+}
+
+Direction.GetYAngle = function(direction: Direction): number {
+    switch (direction) {
+        case Direction.North:
+            return 180;
+        case Direction.East:
+            return 270;
+        case Direction.South:
+            return 0;
+        case Direction.West:
+            return 90;
+        default:
+            return 0;
+    }
 }

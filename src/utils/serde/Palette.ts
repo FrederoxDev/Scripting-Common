@@ -1,4 +1,5 @@
 import { BlockPermutation } from "@minecraft/server"
+import { BinaryStream, ReadOnlyBinaryStream } from "./BinaryStream";
 
 export abstract class Palette<T> {
     private nextIndex: number;
@@ -50,6 +51,29 @@ export abstract class Palette<T> {
     public *entries(): IterableIterator<[number, T]> {
         for (let i = 0; i < this.serializedEntries.length; i++) {
             yield [i, this.deserialize(this.serializedEntries[i])];
+        }
+    }
+
+    public write(stream: BinaryStream) {
+        stream.writeUnsignedVarInt32(this.serializedEntries.length);
+
+        for (const entry of this.serializedEntries) {
+            stream.writeString(entry);
+        }
+    }
+
+    public read(stream: ReadOnlyBinaryStream): void {
+        const length = stream.readUnsignedVarInt32();
+
+        this.serializedEntries = [];
+        this.indexMap = new Map();
+        this.nextIndex = 0;
+
+        for (let i = 0; i < length; i++) {
+            const entry = stream.readString();
+            this.serializedEntries.push(entry);
+            this.indexMap.set(entry, i);
+            this.nextIndex++;
         }
     }
 }

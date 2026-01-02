@@ -1,5 +1,6 @@
 import { Block, Direction } from "@minecraft/server";
 import { DirectionFromCardinalString, DIRECTIONS } from "../../Index";
+import { MinecraftBlockTypes } from "@minecraft/vanilla-data";
 
 declare module "@minecraft/server" {
     interface Block {
@@ -13,6 +14,11 @@ declare module "@minecraft/server" {
          * @throws if the block does not have the 'minecraft:cardinal_direction' block state
          */
         getCardinalDirection(): Direction;
+
+        /** 
+         * Returns true if the block can be built over (like air, water, tall grass, etc)
+        */
+        canBeBuiltOver(): boolean;
     }
 }
 
@@ -51,4 +57,26 @@ Block.prototype.getCardinalDirection = function() {
     throw new Error(
         `Block#getCardinalDirection was called on block id: '${this.typeId}', but the block did not have the 'minecraft:cardinal_direction' state.`
     );
+}
+
+const replacableBlocks = new Set<string>([
+    MinecraftBlockTypes.Fern,
+    MinecraftBlockTypes.LargeFern,
+    MinecraftBlockTypes.ShortGrass,
+    MinecraftBlockTypes.TallGrass,
+    MinecraftBlockTypes.ShortDryGrass,
+    MinecraftBlockTypes.TallDryGrass,
+    MinecraftBlockTypes.Bush,
+    MinecraftBlockTypes.Deadbush,
+    MinecraftBlockTypes.Seagrass,
+    MinecraftBlockTypes.Vine,
+    MinecraftBlockTypes.Water,
+    MinecraftBlockTypes.FlowingWater,
+    MinecraftBlockTypes.Lava,
+    MinecraftBlockTypes.FlowingLava,
+    MinecraftBlockTypes.Air
+])
+
+Block.prototype.canBeBuiltOver = function() {
+    return replacableBlocks.has(this.typeId);
 }

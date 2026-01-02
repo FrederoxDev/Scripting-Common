@@ -1,6 +1,6 @@
-import { Block, BlockComponentOnPlaceEvent, BlockComponentPlayerBreakEvent, CustomComponentParameters, Entity, Vector3 } from "@minecraft/server"
+import { Block, BlockComponentOnPlaceEvent, BlockComponentPlayerBreakEvent, CustomComponentParameters, Direction, Entity, Vector3 } from "@minecraft/server"
 import { Vec3 } from "../../utils/math/Vec3";
-import { BlockCustomComponentV2, DirectionToAngle } from "../../Index";
+import { BlockCustomComponentV2 } from "../../Index";
 
 /**
  * A base class for all singlular block entity needs.
@@ -60,7 +60,7 @@ export class GenericBlockEntity implements BlockCustomComponentV2 {
 
         // Entity rotation component
         if (this.entityRotationProperty !== undefined) {
-            let angle = DirectionToAngle(block.getCardinalDirection()) + this.entityRotationOffset!;
+            let angle = Direction.GetYAngle(block.getCardinalDirection()) + this.entityRotationOffset!;
             angle = angle >= 360 ? angle - 360 : angle;
             entity.setProperty(this.entityRotationProperty, angle);
         }
