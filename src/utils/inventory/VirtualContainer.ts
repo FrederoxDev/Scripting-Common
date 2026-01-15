@@ -1,25 +1,23 @@
-import { Container, ContainerSlot, ItemStack } from "@minecraft/server";
+import { ContainerSlot, ItemStack } from "@minecraft/server";
+import { ContainerLike } from "./ContainerLike";
 
 /**
  * A virtual container that represents groups of items inside of one real container.
  */
 export class VirtualContainer {
-    private container: Container;
     private slots: number[];
 
     /**
-     * @param realContainer The underlaying container to use in our virutal container
      * @param slots The slots in that container to use virtually.
      */
-    constructor(realContainer: Container, slots: number[]) {
-        this.container = realContainer;
+    constructor(slots: number[]) {
         this.slots = slots;
     }
 
     /**
      * @returns The size of the virtual container.
      */
-    size(): number {
+    get size(): number {
         return this.slots.length;
     }
 
@@ -28,16 +26,20 @@ export class VirtualContainer {
      * @param slot 
      * @returns 
      */
-    getSlot(slot: number): ContainerSlot {
-        return this.container.getSlot(this.slots[slot]);
+    getSlot(container: ContainerLike, slot: number): ContainerSlot {
+        return container.getSlot(this.slots[slot]);
+    }
+
+    getItem(container: ContainerLike, slot: number): ItemStack | undefined {
+        return container.getItem(this.slots[slot]);
     }
     
     /**
      * Checks if the entire virtual container is empty.
      */
-    isEmpty(): boolean {
+    isEmpty(container: ContainerLike): boolean {
         for (let i = 0; i < this.slots.length; i++) {
-            if (!this.container.getSlot(this.slots[i]).hasItem()) return false;
+            if (!container.getSlot(this.slots[i]).hasItem()) return false;
         }
         return true;
     }
@@ -45,9 +47,9 @@ export class VirtualContainer {
     /**
      * Finds the first slot that returns true for the provided function.
      */
-    findSlot(predicate: (item: ItemStack) => boolean): ContainerSlot | undefined{
+    findSlot(container: ContainerLike, predicate: (item: ItemStack) => boolean): ContainerSlot | undefined{
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = this.container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]);
             if (slot.hasItem() && predicate(slot.getItem()!)) return slot;
         }
         return undefined;
@@ -56,18 +58,153 @@ export class VirtualContainer {
     /**
      * Finds the first slot index (in virtual container space) that returns true for the provided function.
      */
-    findSlotIdx(predicate: (item: ItemStack) => boolean): number | undefined{
+    findSlotIdx(container: ContainerLike, predicate: (item: ItemStack) => boolean): number | undefined{
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = this.container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]);
             if (slot.hasItem() && predicate(slot.getItem()!)) return i;
         }
         return undefined;
     }
 
-    forEachItem(predicate: (item: ItemStack) => void): void {
+    forEachItem(container: ContainerLike, predicate: (item: ItemStack) => void): void {
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = this.container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]);
             if (slot.hasItem()) predicate(slot.getItem()!);
         }
+    }
+
+    canAddItems(container: ContainerLike, items: ItemStack[]): boolean {
+        // Snapshot current slot state (simulation)
+        const simulated = this.slots.map(i => {
+            const slot = container.getSlot(i);
+            return slot.hasItem() ? slot.getItem()!.clone() : undefined;
+        });
+
+        // Simulate insertion
+        for (const incoming of items) {
+            let remaining = incoming.amount;
+
+            // Merge into existing stacks
+            for (const item of simulated) {
+                if (!item) continue;
+                if (item.typeId !== incoming.typeId) continue;
+
+                const space = item.maxAmount - item.amount;
+                if (space <= 0) continue;
+
+                const used = Math.min(space, remaining);
+                item.amount += used;
+                remaining -= used;
+
+                if (remaining === 0) break;
+            }
+
+            // Fill empty slots
+            for (let i = 0; i < simulated.length && remaining > 0; i++) {
+                if (simulated[i]) continue;
+
+                const placed = Math.min(incoming.maxAmount, remaining);
+                const clone = incoming.clone();
+                clone.amount = placed;
+
+                simulated[i] = clone;
+                remaining -= placed;
+            }
+
+            if (remaining > 0) return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Attempts to add the provided items into the virtual container.
+     * @returns true if all items were added, false if there was not enough space.
+     */
+    tryAddItems(container: ContainerLike, items: ItemStack[]): boolean {
+        // Snapshot current slot state (simulation)
+        const simulated = this.slots.map(i => {
+            const slot = container.getSlot(i);
+            return slot.hasItem() ? slot.getItem()!.clone() : undefined;
+        });
+
+        // Simulate insertion
+        for (const incoming of items) {
+            let remaining = incoming.amount;
+
+            // Merge into existing stacks
+            for (const item of simulated) {
+                if (!item) continue;
+                if (item.typeId !== incoming.typeId) continue;
+
+                const space = item.maxAmount - item.amount;
+                if (space <= 0) continue;
+
+                const used = Math.min(space, remaining);
+                item.amount += used;
+                remaining -= used;
+
+                if (remaining === 0) break;
+            }
+
+            // Fill empty slots
+            for (let i = 0; i < simulated.length && remaining > 0; i++) {
+                if (simulated[i]) continue;
+
+                const placed = Math.min(incoming.maxAmount, remaining);
+                const clone = incoming.clone();
+                clone.amount = placed;
+
+                simulated[i] = clone;
+                remaining -= placed;
+            }
+
+            if (remaining > 0) return false;
+        }
+
+        // Commit simulated state to real container
+        for (let i = 0; i < simulated.length; i++) {
+            const realSlot = container.getSlot(this.slots[i]);
+            const item = simulated[i];
+
+            if (item) {
+                realSlot.setItem(item);
+            } else {
+                realSlot.setItem(undefined);
+            }
+        }
+
+        return true;
+    }
+
+    takeItems(container: ContainerLike, items: ItemStack[]): void {
+        for (const requested of items) {
+            let remaining = requested.amount;
+
+            for (let i = 0; i < this.slots.length && remaining > 0; i++) {
+                const slot = container.getSlot(this.slots[i]);
+                if (!slot.hasItem()) continue;
+
+                const item = slot.getItem()!;
+                if (item.typeId !== requested.typeId) continue;
+
+                if (item.amount > remaining) {
+                    item.amount -= remaining;
+                    slot.setItem(item);
+                    remaining = 0;
+                } else {
+                    remaining -= item.amount;
+                    slot.setItem(undefined);
+                }
+            }
+        }
+    }
+
+    firstNonEmptySlot(container: ContainerLike): ContainerSlot | undefined {
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = container.getSlot(this.slots[i]);
+            if (slot.hasItem()) return slot;
+        }
+        return undefined;
     }
 }

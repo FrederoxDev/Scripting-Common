@@ -22,7 +22,7 @@
     "@minecraft/vanilla-data": "^1.21.120"
   },
   "devDependencies": {
-    "@minecraft/server": "^2.3.0",
+    "@minecraft/server": "^2.4.0",
     "@minecraft/vanilla-data": "^1.21.120"
   }
 }

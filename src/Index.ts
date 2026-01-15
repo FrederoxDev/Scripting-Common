@@ -37,6 +37,8 @@ export * from './utils/math/MathUtils'
 export * from './utils/serde/BinaryStream'
 export * from './utils/serde/Palette'
 import './utils/error/BetterLogs'
+export * from "./utils/inventory/ContainerLike"
+export * from "./utils/inventory/MultiContainer"
 
 ///////////////////////////////////////////////////////////////////
 //            Library Initialization stuff
