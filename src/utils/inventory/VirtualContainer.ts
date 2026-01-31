@@ -122,7 +122,6 @@ export class VirtualContainer {
      * @returns true if all items were added, false if there was not enough space.
      */
     tryAddItems(container: ContainerLike, items: ItemStack[]): boolean {
-        // Snapshot current slot state (simulation)
         const simulated = this.slots.map(i => {
             const slot = container.getSlot(i);
             return slot.hasItem() ? slot.getItem()!.clone() : undefined;
@@ -132,7 +131,6 @@ export class VirtualContainer {
         for (const incoming of items) {
             let remaining = incoming.amount;
 
-            // Merge into existing stacks
             for (const item of simulated) {
                 if (!item) continue;
                 if (item.typeId !== incoming.typeId) continue;
@@ -147,7 +145,6 @@ export class VirtualContainer {
                 if (remaining === 0) break;
             }
 
-            // Fill empty slots
             for (let i = 0; i < simulated.length && remaining > 0; i++) {
                 if (simulated[i]) continue;
 
@@ -162,7 +159,6 @@ export class VirtualContainer {
             if (remaining > 0) return false;
         }
 
-        // Commit simulated state to real container
         for (let i = 0; i < simulated.length; i++) {
             const realSlot = container.getSlot(this.slots[i]);
             const item = simulated[i];

@@ -283,7 +283,7 @@ export class ReadOnlyBinaryStream {
 
         if (typeof bufferOrStr === "string") {
             const decoded = Base64.decode(bufferOrStr);
-            buffer = decoded.buffer;
+            buffer = decoded.buffer as ArrayBuffer;
         } else {
             buffer = bufferOrStr;
         }
