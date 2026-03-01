@@ -12,7 +12,7 @@ export class Vec3 {
     /** @__PURE__ */
     static from(x: number | number[], y?: number, z?: number): Vector3 {
         if (Array.isArray(x)) {
-            return { x: x[0], y: x[1], z: x[2] }
+            return { x: x[0]!, y: x[1]!, z: x[2]! }
         }
 
         if (typeof x === 'number' && y !== undefined && z !== undefined) {
@@ -190,9 +190,9 @@ export class Vec3 {
     static fromKey(key: string): Vector3 {
         const components = key.split(",").map(v => Number(v));
         return {
-            x: components[0],
-            y: components[1],
-            z: components[2]
+            x: components[0]!,
+            y: components[1]!,
+            z: components[2]!
         }
     }
 

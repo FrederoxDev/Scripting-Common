@@ -60,8 +60,8 @@ export class AnimationInstance {
             throw new Error(`Tried to call getNumber on variable of type ${typeof variable.current_value}`);
         }
 
-        const startTime = this.ordered_frames[variable.current_update_idx] * 1000;
-        const endTime = this.ordered_frames[variable.target_update_idx] * 1000;
+        const startTime = this.ordered_frames[variable.current_update_idx]! * 1000;
+        const endTime = this.ordered_frames[variable.target_update_idx]! * 1000;
 
         if (startTime === endTime) {
             return variable.current_value as number;
@@ -82,8 +82,8 @@ export class AnimationInstance {
             throw new Error(`[getVector3] ${name} was not a Vec3`);
         }
 
-        const startTime = this.ordered_frames[variable.current_update_idx] * 1000;
-        const endTime = this.ordered_frames[variable.target_update_idx] * 1000;
+        const startTime = this.ordered_frames[variable.current_update_idx]! * 1000;
+        const endTime = this.ordered_frames[variable.target_update_idx]! * 1000;
 
         if (startTime === endTime) {
             return variable.current_value as Vector3;

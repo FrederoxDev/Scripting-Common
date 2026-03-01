@@ -37,7 +37,7 @@ export function RelativeRotate(lhs: Direction, rhs: Direction): Direction {
 
     let newIndex = lhsIndex + rhsIndex;
     if (newIndex >= 4) newIndex -= 4;
-    return CARDINAL_DIRS[newIndex];
+    return CARDINAL_DIRS[newIndex]!;
 }
 
 export function InverseRelativeRotate(lhs: Direction, rhs: Direction): Direction {
@@ -48,7 +48,7 @@ export function InverseRelativeRotate(lhs: Direction, rhs: Direction): Direction
 
     let newIndex = lhsIndex - rhsIndex;
     if (newIndex < 0) newIndex += 4; 
-    return CARDINAL_DIRS[newIndex];
+    return CARDINAL_DIRS[newIndex]!;
 }
 
 export function DirectionToVec3(direction: Direction) {

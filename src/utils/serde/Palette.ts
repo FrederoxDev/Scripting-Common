@@ -43,14 +43,14 @@ export abstract class Palette<T> {
     /** Iterate over the raw serialized strings */
     public *rawEntries(): IterableIterator<[number, string]> {
         for (let i = 0; i < this.serializedEntries.length; i++) {
-            yield [i, this.serializedEntries[i]];
+            yield [i, this.serializedEntries[i]!];
         }
     }
 
     /** Iterate over deserialized entries */
     public *entries(): IterableIterator<[number, T]> {
         for (let i = 0; i < this.serializedEntries.length; i++) {
-            yield [i, this.deserialize(this.serializedEntries[i])];
+            yield [i, this.deserialize(this.serializedEntries[i]!)];
         }
     }
 

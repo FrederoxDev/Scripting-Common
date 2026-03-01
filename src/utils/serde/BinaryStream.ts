@@ -96,25 +96,25 @@ const UTF8 = {
     decode(bytes: Uint8Array): string {
         let str = "";
         for (let i = 0; i < bytes.length; ) {
-            const b1 = bytes[i++];
+            const b1 = bytes[i++]!;
 
             if (b1 < 0x80) {
                 str += String.fromCharCode(b1);
             } else if ((b1 & 0xE0) === 0xC0) {
-                const b2 = bytes[i++];
+                const b2 = bytes[i++]!;
                 str += String.fromCharCode(((b1 & 0x1F) << 6) | (b2 & 0x3F));
             } else if ((b1 & 0xF0) === 0xE0) {
-                const b2 = bytes[i++];
-                const b3 = bytes[i++];
+                const b2 = bytes[i++]!;
+                const b3 = bytes[i++]!;
                 str += String.fromCharCode(
                     ((b1 & 0x0F) << 12) |
                     ((b2 & 0x3F) << 6) |
                     (b3 & 0x3F)
                 );
             } else if ((b1 & 0xF8) === 0xF0) {
-                const b2 = bytes[i++];
-                const b3 = bytes[i++];
-                const b4 = bytes[i++];
+                const b2 = bytes[i++]!;
+                const b3 = bytes[i++]!;
+                const b4 = bytes[i++]!;
                 let codepoint = 
                     ((b1 & 0x07) << 18) |
                     ((b2 & 0x3F) << 12) |
@@ -256,7 +256,7 @@ export class BinaryStream {
         const bytes = this.getBytes();
         let binary = "";
         for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
+            binary += String.fromCharCode(bytes[i]!);
         }
         return Base64.encode(new Uint8Array(binary.split("").map(c => c.charCodeAt(0))));
     }
@@ -424,7 +424,7 @@ export class ReadOnlyBinaryStream {
 
         let binary = "";
         for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
+            binary += String.fromCharCode(bytes[i]!);
         }
 
         return Base64.encode(new Uint8Array(binary.split("").map(c => c.charCodeAt(0))));

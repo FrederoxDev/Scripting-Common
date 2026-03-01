@@ -23,7 +23,7 @@ declare module "@minecraft/server" {
 }
 
 Block.prototype.findClosestPlayer = function() {
-    return this.dimension.getPlayers({ closest: 1 })[0];
+    return this.dimension.getPlayers({ closest: 1 })[0]!;
 } 
 
 Block.prototype.inDirection = function(direction: Direction) {

@@ -27,11 +27,11 @@ export class VirtualContainer {
      * @returns 
      */
     getSlot(container: ContainerLike, slot: number): ContainerSlot {
-        return container.getSlot(this.slots[slot]);
+        return container.getSlot(this.slots[slot]!);
     }
 
     getItem(container: ContainerLike, slot: number): ItemStack | undefined {
-        return container.getItem(this.slots[slot]);
+        return container.getItem(this.slots[slot]!);
     }
     
     /**
@@ -39,7 +39,7 @@ export class VirtualContainer {
      */
     isEmpty(container: ContainerLike): boolean {
         for (let i = 0; i < this.slots.length; i++) {
-            if (!container.getSlot(this.slots[i]).hasItem()) return false;
+            if (!container.getSlot(this.slots[i]!).hasItem()) return false;
         }
         return true;
     }
@@ -49,7 +49,7 @@ export class VirtualContainer {
      */
     findSlot(container: ContainerLike, predicate: (item: ItemStack) => boolean): ContainerSlot | undefined{
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem() && predicate(slot.getItem()!)) return slot;
         }
         return undefined;
@@ -60,7 +60,7 @@ export class VirtualContainer {
      */
     findSlotIdx(container: ContainerLike, predicate: (item: ItemStack) => boolean): number | undefined{
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem() && predicate(slot.getItem()!)) return i;
         }
         return undefined;
@@ -68,7 +68,7 @@ export class VirtualContainer {
 
     forEachItem(container: ContainerLike, predicate: (item: ItemStack) => void): void {
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem()) predicate(slot.getItem()!);
         }
     }
@@ -160,8 +160,8 @@ export class VirtualContainer {
         }
 
         for (let i = 0; i < simulated.length; i++) {
-            const realSlot = container.getSlot(this.slots[i]);
-            const item = simulated[i];
+            const realSlot = container.getSlot(this.slots[i]!);
+            const item = simulated[i]!;
 
             if (item) {
                 realSlot.setItem(item);
@@ -178,7 +178,7 @@ export class VirtualContainer {
             let remaining = requested.amount;
 
             for (let i = 0; i < this.slots.length && remaining > 0; i++) {
-                const slot = container.getSlot(this.slots[i]);
+                const slot = container.getSlot(this.slots[i]!);
                 if (!slot.hasItem()) continue;
 
                 const item = slot.getItem()!;
@@ -198,7 +198,7 @@ export class VirtualContainer {
 
     firstNonEmptySlot(container: ContainerLike): ContainerSlot | undefined {
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem()) return slot;
         }
         return undefined;

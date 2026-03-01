@@ -51,8 +51,8 @@ export class AABB {
     static fromPositions(positions: Vector3[]) {
         assert(positions.length > 0, "Cannot create an AABB from an empty list of vectors");
         
-        let min = positions[0];
-        let max = positions[0];
+        let min = positions[0]!;
+        let max = positions[0]!;
 
         positions.forEach(pos => {
             min = Vec3.min(min, pos)
@@ -65,8 +65,8 @@ export class AABB {
     static fromAABBs(aabbs: AABB[]) {
         assert(aabbs.length > 0, "Cannot create an AABB from an empty list of AABBs");
 
-        let min = aabbs[0].min;
-        let max = aabbs[0].max;
+        let min = aabbs[0]!.min;
+        let max = aabbs[0]!.max;
 
         for (const box of aabbs) {
             min = Vec3.min(min, box.min);

@@ -40,7 +40,7 @@ export class InventoryView {
             return container.getSlot(slot);
         }
 
-        return container.getSlot(this.slots[slot]);
+        return container.getSlot(this.slots[slot]!);
     }
     
     /**
@@ -56,7 +56,7 @@ export class InventoryView {
         }
 
         for (let i = 0; i < this.slots.length; i++) {
-            if (!container.getSlot(this.slots[i]).hasItem()) return false;
+            if (!container.getSlot(this.slots[i]!).hasItem()) return false;
         }
         return true;
     }
@@ -74,7 +74,7 @@ export class InventoryView {
         }
 
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem() && predicate(slot.getItem()!)) return slot;
         }
         return undefined;
@@ -93,7 +93,7 @@ export class InventoryView {
         }
 
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem() && predicate(slot.getItem()!)) return i;
         }
         return undefined;
@@ -109,7 +109,7 @@ export class InventoryView {
         }
 
         for (let i = 0; i < this.slots.length; i++) {
-            const slot = container.getSlot(this.slots[i]);
+            const slot = container.getSlot(this.slots[i]!);
             if (slot.hasItem()) predicate(slot.getItem()!);
         }
     }
@@ -124,8 +124,8 @@ export class InventoryView {
         }
 
         for (let i = 0; i < this.slots.length; i++) {
-            const index = this.slots[i];
-            const slot = container.getSlot(index);
+            const index = this.slots[i]!;
+            const slot = container.getSlot(index)!;
             predicate(slot, index);
         }
     }

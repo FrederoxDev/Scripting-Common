@@ -28,7 +28,7 @@ export class AnimationPlayer {
         // Handle multiple frames getting passed in one animation tick
         while (
             anim.next_frame_idx < anim.ordered_frames.length && 
-            anim.elapsed_time >= anim.ordered_frames[anim.next_frame_idx] * 1000
+            anim.elapsed_time >= anim.ordered_frames[anim.next_frame_idx]! * 1000
         ) {
             /** Update all variables */
             this._processFrameVariables(anim, anim.next_frame_idx);
@@ -69,7 +69,7 @@ export class AnimationPlayer {
                 if (frame.variables![name] === undefined) return true;
 
                 anim.variables[name] = {
-                    current_value: currentFrame.variables![name],
+                    current_value: currentFrame.variables![name]!,
                     current_update_idx: frameIdx,
                     target_value: frame.variables![name],
                     target_update_idx: i
@@ -85,9 +85,9 @@ export class AnimationPlayer {
         /** This variable is never used again, set target and current value to the same */
         variablesToFindNext.forEach(name => {
             anim.variables[name] = {
-                current_value: currentFrame.variables![name],
+                current_value: currentFrame.variables![name]!,
                 current_update_idx: frameIdx,
-                target_value: currentFrame.variables![name],
+                target_value: currentFrame.variables![name]!,
                 target_update_idx: frameIdx
             }
         });
@@ -102,6 +102,6 @@ export class AnimationPlayer {
     }
 
     private _getFrame(anim: AnimationInstance, idx: number): Keyframe {
-        return anim.animation.keyframes[anim.ordered_frames[idx]];
+        return anim.animation.keyframes[anim.ordered_frames[idx]!]!;
     }
 }
