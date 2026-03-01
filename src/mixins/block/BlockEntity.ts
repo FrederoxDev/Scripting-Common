@@ -1,5 +1,5 @@
 import { Block } from "@minecraft/server";
-import { Vec3 } from "../../Index";
+import { Vec3 } from "../../utils/math/Vec3";
 
 declare module "@minecraft/server" {
     interface Block {

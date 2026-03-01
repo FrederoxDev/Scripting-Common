@@ -1,6 +1,6 @@
 import { Block, Direction } from "@minecraft/server";
-import { DirectionFromCardinalString, DIRECTIONS } from "../../Index";
 import { MinecraftBlockTypes } from "@minecraft/vanilla-data";
+import { DirectionFromCardinalString, DIRECTIONS } from "../../utils/math/Direction";
 
 declare module "@minecraft/server" {
     interface Block {

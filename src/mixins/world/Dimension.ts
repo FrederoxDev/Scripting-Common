@@ -1,5 +1,5 @@
 import { Player, Vector3, Dimension, world, system } from "@minecraft/server";
-import { Vec3 } from "../../Index";
+import { Vec3 } from "../../utils/math/Vec3";
 
 declare module "@minecraft/server" {
     interface Dimension {
