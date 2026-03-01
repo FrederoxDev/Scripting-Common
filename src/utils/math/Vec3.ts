@@ -1,5 +1,5 @@
 import { Vector2, Vector3 } from "@minecraft/server";
-import { Vec2 } from "./Vec2.js"
+import { Vec2 } from "./Vec2"
 
 export type Vec3Key = string;
 

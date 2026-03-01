@@ -1,4 +1,5 @@
 import './mixins/world/Dimension'
+import './mixins/world/DimensionUtils'
 import './mixins/block/BlockEntity'
 import './mixins/block/BlockGenericHelpers'
 import './mixins/entity/EntityComponents'

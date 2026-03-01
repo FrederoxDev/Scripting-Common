@@ -20,7 +20,7 @@ export class ComponentSystem<T> {
 
     forEach(callback: (id: string, component: T) => void): void {
         for (const id in this._internalRegistered) {
-            callback(id, this._internalRegistered[id]);
+            callback(id, this._internalRegistered[id]!);
         }
     }
 }
