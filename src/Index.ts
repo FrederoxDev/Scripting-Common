@@ -39,6 +39,7 @@ export * from './utils/serde/Palette'
 import './utils/error/BetterLogs'
 export * from "./utils/inventory/ContainerLike"
 export * from "./utils/inventory/MultiContainer"
+export * from "./utils/i18n/LocalizationUtils"
 
 ///////////////////////////////////////////////////////////////////
 //            Library Initialization stuff
