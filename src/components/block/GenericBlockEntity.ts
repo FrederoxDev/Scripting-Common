@@ -1,6 +1,6 @@
 import { Block, BlockComponentOnPlaceEvent, BlockComponentPlayerBreakEvent, CustomComponentParameters, Direction, Entity, Vector3 } from "@minecraft/server"
 import { Vec3 } from "../../utils/math/Vec3";
-import { BlockCustomComponentV2 } from "../../Index";
+import { BlockCustomComponentV2 } from "../block/BlockCustomComponentV2";
 
 /**
  * A base class for all singlular block entity needs.
