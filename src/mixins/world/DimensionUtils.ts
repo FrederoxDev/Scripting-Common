@@ -13,10 +13,8 @@ declare module "@minecraft/server" {
 }
 
 world.afterEvents.worldLoad.subscribe(() => {
-    // Destroy all ticking areas on world-load just incase some are left-over
     try {
-        const result = world.getDimension("overworld").runCommand("tickingarea list all-dimensions");
-        console.log(`DimensionUtils: Cleared leftover ticking areas on world load`);
+        world.getDimension("overworld").runCommand("tickingarea list all-dimensions");
     } catch {
         // No ticking areas to clear, or command failed — that's fine
     }
@@ -46,6 +44,7 @@ function processQueue() {
     (async () => {
         const areaName = `_ensureArea_${uuidv4()}`;
 
+        // ticking area manager doesnt exist yet on scripting 2.5.0, this should be replaced when it comes out
         try {
             // Create a ticking area via command
             const fx = Math.floor(item.from.x);
