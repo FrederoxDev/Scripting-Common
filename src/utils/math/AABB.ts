@@ -77,6 +77,16 @@ export class AABB {
     }
 
     /**
+     * Returns a new AABB shrunk by the given amount on each side.
+     */
+    deflate(amount: number): AABB {
+        return new AABB(
+            Vec3.from(this.min.x + amount, this.min.y + amount, this.min.z + amount),
+            Vec3.from(this.max.x - amount, this.max.y - amount, this.max.z - amount),
+        );
+    }
+
+    /**
      * Checks if this AABB intersects with another AABB
      * @param other {AABB} The other AABB to check for intersection
      * @returns {boolean} True if the AABBs intersect, false otherwise
