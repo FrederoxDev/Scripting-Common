@@ -14,7 +14,7 @@ declare module "@minecraft/server" {
 
 world.afterEvents.worldLoad.subscribe(() => {
     try {
-        world.getDimension("overworld").runCommand("tickingarea list all-dimensions");
+        world.getDimension("overworld").runCommand("tickingarea remove_all");
     } catch {
         // No ticking areas to clear, or command failed — that's fine
     }

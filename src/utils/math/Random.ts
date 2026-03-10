@@ -19,6 +19,18 @@ function mulberry32(seed: number): () => number {
  * - Can also be constructed for seeded randomness
  */
 export class Random {
+    /** Returns a deterministic float [0, 1) for a given 3D position and optional seed. */
+    static fromPosition(x: number, y: number, z: number, seed: number = 0): number {
+        let h = seed | 0;
+        h = Math.imul(h ^ (x | 0), 0x9E3779B9);
+        h = Math.imul(h ^ (y | 0), 0x9E3779B9);
+        h = Math.imul(h ^ (z | 0), 0x9E3779B9);
+        h ^= h >>> 16;
+        h = Math.imul(h, 0x45D9F3B);
+        h ^= h >>> 16;
+        return (h >>> 0) / 4294967296;
+    }
+
     static getRandomInt(min: number, max: number): number {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
