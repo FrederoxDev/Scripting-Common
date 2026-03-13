@@ -54,16 +54,27 @@ function processQueue() {
             const ty = Math.floor(item.to.y);
             const tz = Math.floor(item.to.z);
 
-            item.dimension.runCommand(
-                `tickingarea add ${fx} ${fy} ${fz} ${tx} ${ty} ${tz} "${areaName}"`
+            const addResult = item.dimension.runCommand(
+                `tickingarea add ${fx} ${fy} ${fz} ${tx} ${ty} ${tz} "${areaName}" true`
             );
+            
+            if (addResult.successCount === 0) {
+                throw new Error(`ensureAreaLoaded failed to add tickingarea (${fx},${fy},${fz})→(${tx},${ty},${tz})`);
+            }
 
-            // Poll until the chunks containing our area corners are loaded
+            // Poll until the chunks containing our area corners are loaded (max 1.5s)
+            const MAX_WAIT_TICKS = 30;
+            let waited = 0;
             while (
-                !item.dimension.isChunkLoaded(item.from) ||
-                !item.dimension.isChunkLoaded(item.to)
+                (!item.dimension.isChunkLoaded(item.from) || !item.dimension.isChunkLoaded(item.to)) &&
+                waited < MAX_WAIT_TICKS
             ) {
                 await system.waitTicks(1);
+                waited++;
+            }
+
+            if (waited >= MAX_WAIT_TICKS) {
+                throw new Error("ensureAreaLoaded timeout");
             }
 
             const result = await item.onLoaded();
