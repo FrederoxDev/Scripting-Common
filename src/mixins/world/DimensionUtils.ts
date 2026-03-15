@@ -1,14 +1,21 @@
 import { Dimension, Vector3, world, system } from "@minecraft/server";
 import { uuidv4 } from "../../utils/math/UUID";
+import { Result } from "../../utils/error/Result";
+
+export interface AreaLoadedOk<T> {
+    value: T;
+    /** Milliseconds spent waiting for chunks to load before running the callback. */
+    waitMs: number;
+}
 
 declare module "@minecraft/server" {
     interface Dimension {
         /**
-         * Force loads an area between two positions, once loaded calls the provided async callback.
+         * Force loads an area between two positions, once loaded calls the provided callback.
          * - Once the callback resolves, the area will be unloaded (if not loaded by other factors).
-         * @returns The value returned by the onLoaded callback.
+         * @returns A Result — Ok with { value, waitMs }, or Err with a string describing the failure.
          */
-        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T): Promise<T>;
+        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T): Promise<Result<AreaLoadedOk<T>, string>>;
     }
 }
 
@@ -28,8 +35,7 @@ type QueueItem = {
     from: Vector3;
     to: Vector3;
     onLoaded: () => Promise<unknown> | unknown;
-    resolve: (value: unknown) => void;
-    reject: (e: unknown) => void;
+    resolve: (value: Result<AreaLoadedOk<unknown>, string>) => void;
 };
 
 const queue: QueueItem[] = [];
@@ -44,9 +50,7 @@ function processQueue() {
     (async () => {
         const areaName = `_ensureArea_${uuidv4()}`;
 
-        // ticking area manager doesnt exist yet on scripting 2.5.0, this should be replaced when it comes out
         try {
-            // Create a ticking area via command
             const fx = Math.floor(item.from.x);
             const fy = Math.floor(item.from.y);
             const fz = Math.floor(item.from.z);
@@ -54,17 +58,25 @@ function processQueue() {
             const ty = Math.floor(item.to.y);
             const tz = Math.floor(item.to.z);
 
-            const addResult = item.dimension.runCommand(
-                `tickingarea add ${fx} ${fy} ${fz} ${tx} ${ty} ${tz} "${areaName}" true`
-            );
-            
-            if (addResult.successCount === 0) {
-                throw new Error(`ensureAreaLoaded failed to add tickingarea (${fx},${fy},${fz})→(${tx},${ty},${tz})`);
+            let addResult;
+            try {
+                addResult = item.dimension.runCommand(
+                    `tickingarea add ${fx} ${fy} ${fz} ${tx} ${ty} ${tz} "${areaName}" true`
+                );
+            } catch (e) {
+                item.resolve(Result.err(`Failed to create tickingarea: ${e}`));
+                return;
             }
 
-            // Poll until the chunks containing our area corners are loaded (max 1.5s)
+            if (addResult.successCount === 0) {
+                item.resolve(Result.err(`tickingarea add failed (${fx},${fy},${fz})→(${tx},${ty},${tz})`));
+                return;
+            }
+
+            // Poll until chunks are loaded (max 1.5s)
             const MAX_WAIT_TICKS = 30;
             let waited = 0;
+            const waitStart = Date.now();
             while (
                 (!item.dimension.isChunkLoaded(item.from) || !item.dimension.isChunkLoaded(item.to)) &&
                 waited < MAX_WAIT_TICKS
@@ -72,17 +84,27 @@ function processQueue() {
                 await system.waitTicks(1);
                 waited++;
             }
+            const waitMs = Date.now() - waitStart;
 
             if (waited >= MAX_WAIT_TICKS) {
-                throw new Error("ensureAreaLoaded timeout");
+                item.resolve(Result.err(
+                    `Timeout after ${MAX_WAIT_TICKS} ticks waiting for chunks (${fx},${fy},${fz})→(${tx},${ty},${tz})`
+                ));
+                return;
             }
 
-            const result = await item.onLoaded();
-            item.resolve(result);
+            let callbackResult: unknown;
+            try {
+                callbackResult = await item.onLoaded();
+            } catch (e) {
+                item.resolve(Result.err(`Callback threw: ${e}`));
+                return;
+            }
+
+            item.resolve(Result.ok({ value: callbackResult, waitMs }));
         } catch (e) {
-            item.reject(e);
+            item.resolve(Result.err(`Unexpected error in ensureAreaLoaded: ${e}`));
         } finally {
-            // Remove the ticking area
             try {
                 item.dimension.runCommand(`tickingarea remove "${areaName}"`);
             } catch {
@@ -99,15 +121,14 @@ Dimension.prototype.ensureAreaLoaded = function<T>(
     from: Vector3,
     to: Vector3,
     onLoaded: () => Promise<T> | T
-): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
+): Promise<Result<AreaLoadedOk<T>, string>> {
+    return new Promise<Result<AreaLoadedOk<T>, string>>((resolve) => {
         queue.push({
             dimension: this,
             from,
             to,
             onLoaded,
-            resolve: resolve as (value: unknown) => void,
-            reject
+            resolve: resolve as (value: Result<AreaLoadedOk<unknown>, string>) => void,
         });
 
         processQueue();

@@ -1,45 +1,30 @@
-import { Entity, ItemStack, World } from "@minecraft/server";
-import { assert } from "../error/Error";
-
-const Base64 = {
+const base64 = {
   _chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
 
   encode(bytes: Uint8Array): string {
-    let output = "";
-    let i = 0;
+    const chars = this._chars;
     const len = bytes.length;
+    const parts = new Array(Math.ceil(len / 3) * 4);
+    let pi = 0;
 
-    while (i < len) {
-      const b1 = bytes[i++] ?? 0;
-      const b2 = i < len ? bytes[i++]! : 0;
-      const b3 = i < len ? bytes[i++]! : 0;
+    for (let i = 0; i < len; i += 3) {
+      const b1 = bytes[i]!;
+      const b2 = i + 1 < len ? bytes[i + 1]! : 0;
+      const b3 = i + 2 < len ? bytes[i + 2]! : 0;
 
-      const enc1 = b1 >> 2;
-      const enc2 = ((b1 & 3) << 4) | (b2 >> 4);
-      const enc3 = ((b2 & 15) << 2) | (b3 >> 6);
-      const enc4 = b3 & 63;
-
-      if (i - 1 > len) {
-        output += this._chars.charAt(enc1) + this._chars.charAt(enc2) + "==";
-      } else if (i > len) {
-        output += this._chars.charAt(enc1) + this._chars.charAt(enc2) + this._chars.charAt(enc3) + "=";
-      } else {
-        output += this._chars.charAt(enc1) + this._chars.charAt(enc2) + this._chars.charAt(enc3) + this._chars.charAt(enc4);
-      }
+      parts[pi++] = chars[b1 >> 2];
+      parts[pi++] = chars[((b1 & 3) << 4) | (b2 >> 4)];
+      parts[pi++] = i + 1 < len ? chars[((b2 & 15) << 2) | (b3 >> 6)] : "=";
+      parts[pi++] = i + 2 < len ? chars[b3 & 63] : "=";
     }
 
-    // Fix padding (more precise)
-    const pad = len % 3;
-    if (pad === 1) output = output.slice(0, -2) + "==";
-    else if (pad === 2) output = output.slice(0, -1) + "=";
-
-    return output;
+    return parts.join("");
   },
 
   decode(base64: string): Uint8Array {
     const chars = this._chars;
-    let str = base64.replace(/[^A-Za-z0-9+/=]/g, "");
-    let output = [];
+    const str = base64.replace(/[^A-Za-z0-9+/=]/g, "");
+    const output = [];
     let i = 0;
 
     while (i < str.length) {
@@ -163,6 +148,10 @@ export class BinaryStream {
         this.offset += 1;
     }
 
+    writeBool(value: boolean) {
+        this.writeUint8(value ? 1 : 0);
+    }
+
     writeInt16(value: number) {
         this.ensureCapacity(2);
         this.view.setInt16(this.offset, value, true);
@@ -248,17 +237,22 @@ export class BinaryStream {
         this.offset += 8;
     }
 
+    writeRawBytes(bytes: Uint8Array) {
+        this.ensureCapacity(bytes.length);
+        new Uint8Array(this.buffer, this.offset, bytes.length).set(bytes);
+        this.offset += bytes.length;
+    }
+
     getBytes(): Uint8Array {
         return new Uint8Array(this.buffer, 0, this.offset);
     }
 
     toBase64(): string {
-        const bytes = this.getBytes();
-        let binary = "";
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]!);
-        }
-        return Base64.encode(new Uint8Array(binary.split("").map(c => c.charCodeAt(0))));
+        return base64.encode(this.getBytes());
+    }
+
+    reset() {
+        this.offset = 0;
     }
 
     static fromReadOnlyStream(stream: ReadOnlyBinaryStream): BinaryStream {
@@ -278,14 +272,17 @@ export class ReadOnlyBinaryStream {
     constructor(buffer: ArrayBuffer);
     constructor(base64: string);
 
-    constructor(bufferOrStr: ArrayBuffer | string) {
-        let buffer: ArrayBuffer;
+    constructor(bufferOrStr: ArrayBufferLike | string) {
+        let buffer: ArrayBufferLike;
 
         if (typeof bufferOrStr === "string") {
-            const decoded = Base64.decode(bufferOrStr);
-            buffer = decoded.buffer as ArrayBuffer;
-        } else {
+            const decoded = base64.decode(bufferOrStr);
+            buffer = decoded.buffer;
+        } else if (bufferOrStr instanceof ArrayBuffer) {
             buffer = bufferOrStr;
+        }
+        else {
+            throw new Error(`Invalid argument to ReadOnlyBinaryStream, must be ArrayBuffer or base64 string instead got ${typeof bufferOrStr}`);
         }
 
         this.view = new DataView(buffer);
@@ -308,6 +305,10 @@ export class ReadOnlyBinaryStream {
         const val = this.view.getUint8(this.offset);
         this.offset += 1;
         return val;
+    }
+
+    readBool(): boolean {
+        return this.readUint8() !== 0;
     }
 
     readInt16(): number {
@@ -415,70 +416,22 @@ export class ReadOnlyBinaryStream {
         return val;
     }
 
+    readRawBytes(count: number): Uint8Array {
+        this.ensureAvailable(count);
+        const bytes = new Uint8Array(this.view.buffer, this.offset, count);
+        this.offset += count;
+        return bytes;
+    }
+
+    getRemainingBytes(): number {
+        return this.length - this.offset;
+    }
+
     getBytes(): Uint8Array {
         return new Uint8Array(this.view.buffer, 0, this.length);
     }
 
     toBase64(): string {
-        const bytes = new Uint8Array(this.view.buffer, 0, this.length);
-
-        let binary = "";
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]!);
-        }
-
-        return Base64.encode(new Uint8Array(binary.split("").map(c => c.charCodeAt(0))));
-    }
-}
-
-export class BinaryDynamicPropertyAccessor {
-    baseName: string;
-
-    constructor(propertyName: string) {
-        this.baseName = propertyName;
-    }
-
-    // --- Write a BinaryStream into multiple dynamic properties safely ---
-    write(entity: Entity | World | ItemStack, stream: BinaryStream, chunkSize = 32_000): void {
-        const base64 = stream.toBase64(); // encode once
-        const chunks: string[] = [];
-
-        // Split Base64 into safe-sized chunks
-        for (let i = 0; i < base64.length; i += chunkSize) {
-            chunks.push(base64.slice(i, i + chunkSize));
-        }
-
-        const numProps = chunks.length;
-        assert(numProps <= 256, `Too many dynamic properties: ${numProps}`);
-
-        // Store number of chunks in first property
-        entity.setDynamicProperty(this.baseName, String(numProps));
-
-        // Store all chunks in separate properties
-        for (let i = 0; i < numProps; i++) {
-            entity.setDynamicProperty(`${this.baseName}_${i}`, chunks[i]);
-        }
-    }
-
-    // --- Read the BinaryStream back ---
-    read(entity: Entity | World | ItemStack): ReadOnlyBinaryStream | undefined {
-        const countStr = entity.getDynamicProperty(this.baseName) as string | undefined;
-        if (!countStr) return undefined;
-
-        const numProps = parseInt(countStr, 10);
-        if (isNaN(numProps) || numProps <= 0) return undefined;
-
-        const chunks: string[] = [];
-        for (let i = 0; i < numProps; i++) {
-            const chunk = entity.getDynamicProperty(`${this.baseName}_${i}`) as string | undefined;
-            if (chunk === undefined) {
-                throw new Error(`Missing dynamic property chunk: ${this.baseName}_${i}`);
-            }
-            chunks.push(chunk);
-        }
-
-        // Combine all chunks and decode
-        const fullBase64 = chunks.join("");
-        return new ReadOnlyBinaryStream(fullBase64);
+        return base64.encode(new Uint8Array(this.view.buffer, 0, this.length));
     }
 }

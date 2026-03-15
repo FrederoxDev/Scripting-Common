@@ -9,3 +9,4 @@ import './mixins/inventory/Container'
 import './mixins/world/Dimension'
 import './mixins/world/World'
 import './mixins/inventory/ItemStack'
+import "./utils/error/BetterLogs"
