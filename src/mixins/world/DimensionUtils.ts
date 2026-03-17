@@ -16,6 +16,12 @@ declare module "@minecraft/server" {
          * @returns A Result — Ok with { value, waitMs }, or Err with a string describing the failure.
          */
         ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T): Promise<Result<AreaLoadedOk<T>, string>>;
+
+        /**
+         * Same as ensureAreaLoaded but retries up to `maxRetries` times on failure.
+         * @param tag - Label for warning logs (e.g. "[NPCs]")
+         */
+        ensureAreaLoadedWithRetries<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, maxRetries: number, tag: string): Promise<Result<AreaLoadedOk<T>, string>>;
     }
 }
 
@@ -133,4 +139,20 @@ Dimension.prototype.ensureAreaLoaded = function<T>(
 
         processQueue();
     });
+};
+
+Dimension.prototype.ensureAreaLoadedWithRetries = async function<T>(
+    from: Vector3,
+    to: Vector3,
+    onLoaded: () => Promise<T> | T,
+    maxRetries: number,
+    tag: string
+): Promise<Result<AreaLoadedOk<T>, string>> {
+    let lastResult: Result<AreaLoadedOk<T>, string> | undefined;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        lastResult = await this.ensureAreaLoaded<T>(from, to, onLoaded);
+        if (lastResult.isOk()) return lastResult;
+        console.warn(`${tag} Attempt ${attempt + 1}/${maxRetries} failed: ${lastResult.unwrapErr()}`);
+    }
+    return lastResult!;
 };

@@ -20,7 +20,9 @@ export type LootFunction =
     | SetCountFunction
     | LootingEnchantFunction
     | FurnaceSmeltFunction
-    | SetDataFunction;
+    | SetDataFunction
+    | EnchantRandomlyFunction
+    | SetDamageFunction;
 
 export interface SetCountFunction {
     function: "set_count";
@@ -40,6 +42,16 @@ export interface FurnaceSmeltFunction {
 export interface SetDataFunction {
     function: "set_data";
     data: number;
+}
+
+export interface EnchantRandomlyFunction {
+    function: "enchant_randomly";
+    enchantments?: string[];
+}
+
+export interface SetDamageFunction {
+    function: "set_damage";
+    damage: { min: number; max: number };
 }
 
 export type LootCondition =
@@ -62,6 +74,14 @@ export interface LootResult {
     itemId: string;
     count: number;
     data?: number;
+    enchantments?: LootEnchantment[];
+    /** Damage fraction 0-1 (0 = full durability, 1 = broken) */
+    damageFraction?: number;
+}
+
+export interface LootEnchantment {
+    id: string;
+    level: number;
 }
 
 /** Smelt map for furnace_smelt function */
