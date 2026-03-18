@@ -93,9 +93,9 @@ export class AABB {
      */
     intersects(other: AABB): boolean {
         return !(
-            this.max.x <= other.min.x || this.min.x >= other.max.x ||
-            this.max.y <= other.min.y || this.min.y >= other.max.y ||
-            this.max.z <= other.min.z || this.min.z >= other.max.z
+            this.max.x < other.min.x || this.min.x > other.max.x ||
+            this.max.y < other.min.y || this.min.y > other.max.y ||
+            this.max.z < other.min.z || this.min.z > other.max.z
         );
     }
 
