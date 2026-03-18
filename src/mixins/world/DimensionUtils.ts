@@ -13,15 +13,17 @@ declare module "@minecraft/server" {
         /**
          * Force loads an area between two positions, once loaded calls the provided callback.
          * - Once the callback resolves, the area will be unloaded (if not loaded by other factors).
+         * @param maxWaitTicks - Maximum ticks to wait for chunks to load (default: 30)
          * @returns A Result — Ok with { value, waitMs }, or Err with a string describing the failure.
          */
-        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T): Promise<Result<AreaLoadedOk<T>, string>>;
+        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, maxWaitTicks?: number): Promise<Result<AreaLoadedOk<T>, string>>;
 
         /**
          * Same as ensureAreaLoaded but retries up to `maxRetries` times on failure.
          * @param tag - Label for warning logs (e.g. "[NPCs]")
+         * @param maxWaitTicks - Maximum ticks to wait for chunks to load (default: 30)
          */
-        ensureAreaLoadedWithRetries<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, maxRetries: number, tag: string): Promise<Result<AreaLoadedOk<T>, string>>;
+        ensureAreaLoadedWithRetries<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, maxRetries: number, tag: string, maxWaitTicks?: number): Promise<Result<AreaLoadedOk<T>, string>>;
     }
 }
 
@@ -45,6 +47,7 @@ type QueueItem = {
     to: Vector3;
     onLoaded: () => Promise<unknown> | unknown;
     resolve: (value: Result<AreaLoadedOk<unknown>, string>) => void;
+    maxWaitTicks: number;
 };
 
 const queue: QueueItem[] = [];
@@ -82,22 +85,21 @@ function processQueue() {
                 return;
             }
 
-            // Poll until chunks are loaded (max 1.5s)
-            const MAX_WAIT_TICKS = 30;
+            // Poll until chunks are loaded
             let waited = 0;
             const waitStart = Date.now();
             while (
                 (!item.dimension.isChunkLoaded(item.from) || !item.dimension.isChunkLoaded(item.to)) &&
-                waited < MAX_WAIT_TICKS
+                waited < item.maxWaitTicks
             ) {
                 await system.waitTicks(1);
                 waited++;
             }
             const waitMs = Date.now() - waitStart;
 
-            if (waited >= MAX_WAIT_TICKS) {
+            if (waited >= item.maxWaitTicks) {
                 item.resolve(Result.err(
-                    `Timeout after ${MAX_WAIT_TICKS} ticks waiting for chunks (${fx},${fy},${fz})→(${tx},${ty},${tz})`
+                    `Timeout after ${item.maxWaitTicks} ticks waiting for chunks (${fx},${fy},${fz})→(${tx},${ty},${tz})`
                 ));
                 return;
             }
@@ -129,7 +131,8 @@ function processQueue() {
 Dimension.prototype.ensureAreaLoaded = function<T>(
     from: Vector3,
     to: Vector3,
-    onLoaded: () => Promise<T> | T
+    onLoaded: () => Promise<T> | T,
+    maxWaitTicks: number = 30
 ): Promise<Result<AreaLoadedOk<T>, string>> {
     return new Promise<Result<AreaLoadedOk<T>, string>>((resolve) => {
         queue.push({
@@ -138,6 +141,7 @@ Dimension.prototype.ensureAreaLoaded = function<T>(
             to,
             onLoaded,
             resolve: resolve as (value: Result<AreaLoadedOk<unknown>, string>) => void,
+            maxWaitTicks,
         });
 
         processQueue();
@@ -149,11 +153,12 @@ Dimension.prototype.ensureAreaLoadedWithRetries = async function<T>(
     to: Vector3,
     onLoaded: () => Promise<T> | T,
     maxRetries: number,
-    tag: string
+    tag: string,
+    maxWaitTicks: number = 30
 ): Promise<Result<AreaLoadedOk<T>, string>> {
     let lastResult: Result<AreaLoadedOk<T>, string> | undefined;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-        lastResult = await this.ensureAreaLoaded<T>(from, to, onLoaded);
+        lastResult = await this.ensureAreaLoaded<T>(from, to, onLoaded, maxWaitTicks);
         if (lastResult.isOk()) return lastResult;
         console.warn(`${tag} Attempt ${attempt + 1}/${maxRetries} failed: ${lastResult.unwrapErr()}`);
     }
