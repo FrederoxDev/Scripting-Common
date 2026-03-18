@@ -10,3 +10,6 @@ import './mixins/world/Dimension'
 import './mixins/world/World'
 import './mixins/inventory/ItemStack'
 import "./utils/error/BetterLogs"
+
+export { EventEmitter } from "./utils/systems/EventEmitter"
+export { ColorCodes } from "./utils/ui/ColorCodes"
