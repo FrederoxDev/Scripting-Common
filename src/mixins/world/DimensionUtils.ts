@@ -85,15 +85,32 @@ function processQueue() {
                 return;
             }
 
-            // Poll until chunks are loaded
+            // Poll until all chunks in the area are loaded
             let waited = 0;
             const waitStart = Date.now();
-            while (
-                (!item.dimension.isChunkLoaded(item.from) || !item.dimension.isChunkLoaded(item.to)) &&
-                waited < item.maxWaitTicks
-            ) {
-                await system.waitTicks(1);
-                waited++;
+            let allLoaded = false;
+            while (!allLoaded && waited < item.maxWaitTicks) {
+                allLoaded = true;
+                // Check all chunks in the bounding box (chunks are 16 blocks)
+                const fromChunkX = Math.floor(fx / 16);
+                const fromChunkZ = Math.floor(fz / 16);
+                const toChunkX = Math.floor(tx / 16);
+                const toChunkZ = Math.floor(tz / 16);
+
+                for (let cx = fromChunkX; cx <= toChunkX; cx++) {
+                    for (let cz = fromChunkZ; cz <= toChunkZ; cz++) {
+                        if (!item.dimension.isChunkLoaded({ x: cx * 16, y: fy, z: cz * 16 })) {
+                            allLoaded = false;
+                            break;
+                        }
+                    }
+                    if (!allLoaded) break;
+                }
+
+                if (!allLoaded) {
+                    await system.waitTicks(1);
+                    waited++;
+                }
             }
             const waitMs = Date.now() - waitStart;
 
