@@ -26,10 +26,13 @@ declare module "@minecraft/server" {
 }
 
 world.afterEvents.worldLoad.subscribe(() => {
-    try {
-        world.getDimension("overworld").runCommand("tickingarea remove_all");
-    } catch {
-        // No ticking areas to clear, or command failed — that's fine
+    const dimensions = ["overworld", "nether", "the_end"];
+    for (const dimName of dimensions) {
+        try {
+            world.getDimension(dimName).runCommand("tickingarea remove_all");
+        } catch {
+            // No ticking areas to clear, or command failed — that's fine
+        }
     }
 });
 
