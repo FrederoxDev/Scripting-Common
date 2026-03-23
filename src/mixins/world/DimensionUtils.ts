@@ -1,125 +1,93 @@
-import { Dimension, Vector3, world, system } from "@minecraft/server";
+import { Dimension, Vector3, world } from "@minecraft/server";
 import { uuidv4 } from "../../utils/math/UUID";
 import { Result } from "../../utils/error/Result";
-
-export interface AreaLoadedOk<T> {
-    value: T;
-    /** Milliseconds spent waiting for chunks to load before running the callback. */
-    waitMs: number;
-}
 
 declare module "@minecraft/server" {
     interface Dimension {
         /**
          * Force loads an area between two positions, once loaded calls the provided callback.
          * - Once the callback resolves, the area will be unloaded (if not loaded by other factors).
-         * @param maxWaitTicks - Maximum ticks to wait for chunks to load (default: 30)
-         * @returns A Result — Ok with { value, waitMs }, or Err with a string describing the failure.
+         * @returns A Result — Ok with the callback return value, or Err with a string describing the failure.
          */
-        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, maxWaitTicks?: number): Promise<Result<AreaLoadedOk<T>, string>>;
+        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T): Promise<Result<T, string>>;
 
         /**
-         * Same as ensureAreaLoaded but retries up to `maxRetries` times on failure.
-         * @param tag - Label for warning logs (e.g. "[NPCs]")
-         * @param maxWaitTicks - Maximum ticks to wait for chunks to load (default: 30)
+         * Loads two separate areas simultaneously, then calls the callback once both are loaded.
+         * Both ticking areas are reserved atomically to avoid deadlocks under concurrency.
+         * Use this instead of nesting ensureAreaLoaded calls.
          */
-        ensureAreaLoadedWithRetries<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, maxRetries: number, tag: string, maxWaitTicks?: number): Promise<Result<AreaLoadedOk<T>, string>>;
+        dualEnsureAreaLoaded<T = void>(
+            fromA: Vector3, toA: Vector3,
+            fromB: Vector3, toB: Vector3,
+            onLoaded: () => Promise<T> | T
+        ): Promise<Result<T, string>>;
     }
 }
 
 world.afterEvents.worldLoad.subscribe(() => {
-    const dimensions = ["overworld", "nether", "the_end"];
-    for (const dimName of dimensions) {
-        try {
-            world.getDimension(dimName).runCommand("tickingarea remove_all");
-        } catch {
-            // No ticking areas to clear, or command failed — that's fine
-        }
-    }
+    world.tickingAreaManager.removeAllTickingAreas();
 });
 
 const MAX_TICKING_AREAS = 10;
 let activeTickingAreas = 0;
 
-type QueueItem = {
+type SingleQueueItem = {
+    kind: "single";
     dimension: Dimension;
     from: Vector3;
     to: Vector3;
     onLoaded: () => Promise<unknown> | unknown;
-    resolve: (value: Result<AreaLoadedOk<unknown>, string>) => void;
-    maxWaitTicks: number;
+    resolve: (value: Result<unknown, string>) => void;
 };
+
+type DualQueueItem = {
+    kind: "dual";
+    dimension: Dimension;
+    fromA: Vector3;
+    toA: Vector3;
+    fromB: Vector3;
+    toB: Vector3;
+    onLoaded: () => Promise<unknown> | unknown;
+    resolve: (value: Result<unknown, string>) => void;
+};
+
+type QueueItem = SingleQueueItem | DualQueueItem;
 
 const queue: QueueItem[] = [];
 
 function processQueue() {
-    if (activeTickingAreas >= MAX_TICKING_AREAS) return;
-    const item = queue.shift();
-    if (!item) return;
+    while (queue.length > 0) {
+        const item = queue[0]!;
+        const slotsNeeded = item.kind === "dual" ? 2 : 1;
+        if (activeTickingAreas + slotsNeeded > MAX_TICKING_AREAS) return;
 
-    activeTickingAreas++;
+        queue.shift();
+        activeTickingAreas += slotsNeeded;
 
+        if (item.kind === "single") {
+            processSingle(item);
+        } else {
+            processDual(item);
+        }
+    }
+}
+
+function processSingle(item: SingleQueueItem) {
     (async () => {
-        const areaName = `_ensureArea_${uuidv4()}`;
+        const areaId = `_ensureArea_${uuidv4()}`;
+        const options = {
+            dimension: item.dimension,
+            from: item.from,
+            to: item.to,
+        };
 
         try {
-            const fx = Math.floor(item.from.x);
-            const fy = Math.floor(item.from.y);
-            const fz = Math.floor(item.from.z);
-            const tx = Math.floor(item.to.x);
-            const ty = Math.floor(item.to.y);
-            const tz = Math.floor(item.to.z);
-
-            let addResult;
-            try {
-                addResult = item.dimension.runCommand(
-                    `tickingarea add ${fx} ${fy} ${fz} ${tx} ${ty} ${tz} "${areaName}" true`
-                );
-            } catch (e) {
-                item.resolve(Result.err(`Failed to create tickingarea: ${e}`));
+            if (!world.tickingAreaManager.hasCapacity(options)) {
+                item.resolve(Result.err(`No ticking area capacity for (${item.from.x},${item.from.y},${item.from.z})→(${item.to.x},${item.to.y},${item.to.z})`));
                 return;
             }
 
-            if (addResult.successCount === 0) {
-                item.resolve(Result.err(`tickingarea add failed (${fx},${fy},${fz})→(${tx},${ty},${tz})`));
-                return;
-            }
-
-            // Poll until all chunks in the area are loaded
-            let waited = 0;
-            const waitStart = Date.now();
-            let allLoaded = false;
-            while (!allLoaded && waited < item.maxWaitTicks) {
-                allLoaded = true;
-                // Check all chunks in the bounding box (chunks are 16 blocks)
-                const fromChunkX = Math.floor(fx / 16);
-                const fromChunkZ = Math.floor(fz / 16);
-                const toChunkX = Math.floor(tx / 16);
-                const toChunkZ = Math.floor(tz / 16);
-
-                for (let cx = fromChunkX; cx <= toChunkX; cx++) {
-                    for (let cz = fromChunkZ; cz <= toChunkZ; cz++) {
-                        if (!item.dimension.isChunkLoaded({ x: cx * 16, y: fy, z: cz * 16 })) {
-                            allLoaded = false;
-                            break;
-                        }
-                    }
-                    if (!allLoaded) break;
-                }
-
-                if (!allLoaded) {
-                    await system.waitTicks(1);
-                    waited++;
-                }
-            }
-            const waitMs = Date.now() - waitStart;
-
-            if (waited >= item.maxWaitTicks) {
-                item.resolve(Result.err(
-                    `Timeout after ${item.maxWaitTicks} ticks waiting for chunks (${fx},${fy},${fz})→(${tx},${ty},${tz})`
-                ));
-                return;
-            }
+            await world.tickingAreaManager.createTickingArea(areaId, options);
 
             let callbackResult: unknown;
             try {
@@ -129,12 +97,12 @@ function processQueue() {
                 return;
             }
 
-            item.resolve(Result.ok({ value: callbackResult, waitMs }));
+            item.resolve(Result.ok(callbackResult));
         } catch (e) {
             item.resolve(Result.err(`Unexpected error in ensureAreaLoaded: ${e}`));
         } finally {
             try {
-                item.dimension.runCommand(`tickingarea remove "${areaName}"`);
+                world.tickingAreaManager.removeTickingArea(areaId);
             } catch {
                 // May have already been removed
             }
@@ -145,39 +113,83 @@ function processQueue() {
     })();
 }
 
+function processDual(item: DualQueueItem) {
+    (async () => {
+        const areaIdA = `_ensureArea_${uuidv4()}`;
+        const areaIdB = `_ensureArea_${uuidv4()}`;
+        const optionsA = { dimension: item.dimension, from: item.fromA, to: item.toA };
+        const optionsB = { dimension: item.dimension, from: item.fromB, to: item.toB };
+
+        try {
+            if (!world.tickingAreaManager.hasCapacity(optionsA)) {
+                item.resolve(Result.err(`No ticking area capacity for area A`));
+                return;
+            }
+            await world.tickingAreaManager.createTickingArea(areaIdA, optionsA);
+
+            if (!world.tickingAreaManager.hasCapacity(optionsB)) {
+                item.resolve(Result.err(`No ticking area capacity for area B`));
+                return;
+            }
+            await world.tickingAreaManager.createTickingArea(areaIdB, optionsB);
+
+            let callbackResult: unknown;
+            try {
+                callbackResult = await item.onLoaded();
+            } catch (e) {
+                item.resolve(Result.err(`Callback threw: ${e}`));
+                return;
+            }
+
+            item.resolve(Result.ok(callbackResult));
+        } catch (e) {
+            item.resolve(Result.err(`Unexpected error in dualEnsureAreaLoaded: ${e}`));
+        } finally {
+            try { world.tickingAreaManager.removeTickingArea(areaIdA); } catch {}
+            try { world.tickingAreaManager.removeTickingArea(areaIdB); } catch {}
+
+            activeTickingAreas -= 2;
+            processQueue();
+        }
+    })();
+}
+
 Dimension.prototype.ensureAreaLoaded = function<T>(
     from: Vector3,
     to: Vector3,
     onLoaded: () => Promise<T> | T,
-    maxWaitTicks: number = 30
-): Promise<Result<AreaLoadedOk<T>, string>> {
-    return new Promise<Result<AreaLoadedOk<T>, string>>((resolve) => {
+): Promise<Result<T, string>> {
+    return new Promise<Result<T, string>>((resolve) => {
         queue.push({
+            kind: "single",
             dimension: this,
             from,
             to,
             onLoaded,
-            resolve: resolve as (value: Result<AreaLoadedOk<unknown>, string>) => void,
-            maxWaitTicks,
+            resolve: resolve as (value: Result<unknown, string>) => void,
         });
 
         processQueue();
     });
 };
 
-Dimension.prototype.ensureAreaLoadedWithRetries = async function<T>(
-    from: Vector3,
-    to: Vector3,
+Dimension.prototype.dualEnsureAreaLoaded = function<T>(
+    fromA: Vector3, toA: Vector3,
+    fromB: Vector3, toB: Vector3,
     onLoaded: () => Promise<T> | T,
-    maxRetries: number,
-    tag: string,
-    maxWaitTicks: number = 30
-): Promise<Result<AreaLoadedOk<T>, string>> {
-    let lastResult: Result<AreaLoadedOk<T>, string> | undefined;
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        lastResult = await this.ensureAreaLoaded<T>(from, to, onLoaded, maxWaitTicks);
-        if (lastResult.isOk()) return lastResult;
-        console.warn(`${tag} Attempt ${attempt + 1}/${maxRetries} failed: ${lastResult.unwrapErr()}`);
-    }
-    return lastResult!;
+): Promise<Result<T, string>> {
+    return new Promise<Result<T, string>>((resolve) => {
+        queue.push({
+            kind: "dual",
+            dimension: this,
+            fromA,
+            toA,
+            fromB,
+            toB,
+            onLoaded,
+            resolve: resolve as (value: Result<unknown, string>) => void,
+        });
+
+        processQueue();
+    });
 };
