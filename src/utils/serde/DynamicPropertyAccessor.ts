@@ -16,6 +16,10 @@ export class DynamicPropertyAccessor<T> {
         if (rawValue === undefined) return fallback as Fallback;
         return JSON.parse(rawValue as string) as T;
     }
+
+    delete(entity: Entity | World | ItemStack): void {
+        entity.setDynamicProperty(this.propertyName, undefined);
+    }
 }
 
 export class DynamicPropertyEntityAccessor {
