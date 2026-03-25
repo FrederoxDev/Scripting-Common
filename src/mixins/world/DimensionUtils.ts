@@ -1,6 +1,24 @@
-import { Dimension, Vector3, world } from "@minecraft/server";
+import { Dimension, Vector3, world, system } from "@minecraft/server";
 import { uuidv4 } from "../../utils/math/UUID";
 import { Result } from "../../utils/error/Result";
+
+const DEFAULT_TIMEOUT_TICKS = 200;
+
+function withTimeout<T>(promise: Promise<T>, timeoutTicks: number, label: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        let settled = false;
+        const runId = system.runTimeout(() => {
+            if (!settled) {
+                settled = true;
+                reject(new Error(`Ticking area timed out after ${timeoutTicks} ticks: ${label}`));
+            }
+        }, timeoutTicks);
+        promise.then(
+            (v) => { if (!settled) { settled = true; system.clearRun(runId); resolve(v); } },
+            (e) => { if (!settled) { settled = true; system.clearRun(runId); reject(e); } },
+        );
+    });
+}
 
 declare module "@minecraft/server" {
     interface Dimension {
@@ -9,7 +27,7 @@ declare module "@minecraft/server" {
          * - Once the callback resolves, the area will be unloaded (if not loaded by other factors).
          * @returns A Result — Ok with the callback return value, or Err with a string describing the failure.
          */
-        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T): Promise<Result<T, string>>;
+        ensureAreaLoaded<T = void>(from: Vector3, to: Vector3, onLoaded: () => Promise<T> | T, timeoutTicks?: number): Promise<Result<T, string>>;
 
         /**
          * Loads two separate areas simultaneously, then calls the callback once both are loaded.
@@ -19,7 +37,8 @@ declare module "@minecraft/server" {
         dualEnsureAreaLoaded<T = void>(
             fromA: Vector3, toA: Vector3,
             fromB: Vector3, toB: Vector3,
-            onLoaded: () => Promise<T> | T
+            onLoaded: () => Promise<T> | T,
+            timeoutTicks?: number
         ): Promise<Result<T, string>>;
     }
 }
@@ -36,6 +55,7 @@ type SingleQueueItem = {
     dimension: Dimension;
     from: Vector3;
     to: Vector3;
+    timeoutTicks: number;
     onLoaded: () => Promise<unknown> | unknown;
     resolve: (value: Result<unknown, string>) => void;
 };
@@ -47,6 +67,7 @@ type DualQueueItem = {
     toA: Vector3;
     fromB: Vector3;
     toB: Vector3;
+    timeoutTicks: number;
     onLoaded: () => Promise<unknown> | unknown;
     resolve: (value: Result<unknown, string>) => void;
 };
@@ -87,7 +108,21 @@ function processSingle(item: SingleQueueItem) {
                 return;
             }
 
-            await world.tickingAreaManager.createTickingArea(areaId, options);
+            try {
+                await withTimeout(
+                    world.tickingAreaManager.createTickingArea(areaId, options),
+                    item.timeoutTicks,
+                    `single (${item.from.x},${item.from.y},${item.from.z})→(${item.to.x},${item.to.y},${item.to.z})`,
+                );
+            } catch (e) {
+                // Timed out — clean up and re-queue to try again later
+                console.warn(`[DimensionUtils] ${e} — re-queuing`);
+                try { world.tickingAreaManager.removeTickingArea(areaId); } catch {}
+                activeTickingAreas--;
+                queue.push(item);
+                processQueue();
+                return;
+            }
 
             let callbackResult: unknown;
             try {
@@ -125,13 +160,42 @@ function processDual(item: DualQueueItem) {
                 item.resolve(Result.err(`No ticking area capacity for area A`));
                 return;
             }
-            await world.tickingAreaManager.createTickingArea(areaIdA, optionsA);
+
+            try {
+                await withTimeout(
+                    world.tickingAreaManager.createTickingArea(areaIdA, optionsA),
+                    item.timeoutTicks,
+                    `dual area A`,
+                );
+            } catch (e) {
+                console.warn(`[DimensionUtils] ${e} — re-queuing`);
+                try { world.tickingAreaManager.removeTickingArea(areaIdA); } catch {}
+                activeTickingAreas -= 2;
+                queue.push(item);
+                processQueue();
+                return;
+            }
 
             if (!world.tickingAreaManager.hasCapacity(optionsB)) {
                 item.resolve(Result.err(`No ticking area capacity for area B`));
                 return;
             }
-            await world.tickingAreaManager.createTickingArea(areaIdB, optionsB);
+
+            try {
+                await withTimeout(
+                    world.tickingAreaManager.createTickingArea(areaIdB, optionsB),
+                    item.timeoutTicks,
+                    `dual area B`,
+                );
+            } catch (e) {
+                console.warn(`[DimensionUtils] ${e} — re-queuing`);
+                try { world.tickingAreaManager.removeTickingArea(areaIdA); } catch {}
+                try { world.tickingAreaManager.removeTickingArea(areaIdB); } catch {}
+                activeTickingAreas -= 2;
+                queue.push(item);
+                processQueue();
+                return;
+            }
 
             let callbackResult: unknown;
             try {
@@ -158,6 +222,7 @@ Dimension.prototype.ensureAreaLoaded = function<T>(
     from: Vector3,
     to: Vector3,
     onLoaded: () => Promise<T> | T,
+    timeoutTicks?: number,
 ): Promise<Result<T, string>> {
     return new Promise<Result<T, string>>((resolve) => {
         queue.push({
@@ -165,6 +230,7 @@ Dimension.prototype.ensureAreaLoaded = function<T>(
             dimension: this,
             from,
             to,
+            timeoutTicks: timeoutTicks ?? DEFAULT_TIMEOUT_TICKS,
             onLoaded,
             resolve: resolve as (value: Result<unknown, string>) => void,
         });
@@ -177,6 +243,7 @@ Dimension.prototype.dualEnsureAreaLoaded = function<T>(
     fromA: Vector3, toA: Vector3,
     fromB: Vector3, toB: Vector3,
     onLoaded: () => Promise<T> | T,
+    timeoutTicks?: number,
 ): Promise<Result<T, string>> {
     return new Promise<Result<T, string>>((resolve) => {
         queue.push({
@@ -186,6 +253,7 @@ Dimension.prototype.dualEnsureAreaLoaded = function<T>(
             toA,
             fromB,
             toB,
+            timeoutTicks: timeoutTicks ?? DEFAULT_TIMEOUT_TICKS,
             onLoaded,
             resolve: resolve as (value: Result<unknown, string>) => void,
         });
