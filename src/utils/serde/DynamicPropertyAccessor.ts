@@ -22,6 +22,30 @@ export class DynamicPropertyAccessor<T> {
     }
 }
 
+type DynamicPropertyPrimitive = string | number | boolean;
+
+export class PrimitiveDynamicPropertyAccessor<T extends DynamicPropertyPrimitive> {
+    propertyName: string;
+
+    constructor(propertyName: string) {
+        this.propertyName = propertyName;
+    }
+
+    set(entity: Entity | World | ItemStack, value: T): void {
+        entity.setDynamicProperty(this.propertyName, value);
+    }
+
+    get<Fallback extends T | undefined>(entity: Entity | World | ItemStack, fallback?: Fallback): T | Fallback {
+        const rawValue = entity.getDynamicProperty(this.propertyName);
+        if (rawValue === undefined) return fallback as Fallback;
+        return rawValue as T;
+    }
+
+    delete(entity: Entity | World | ItemStack): void {
+        entity.setDynamicProperty(this.propertyName, undefined);
+    }
+}
+
 export class DynamicPropertyEntityAccessor {
     propertyName: string;
 
