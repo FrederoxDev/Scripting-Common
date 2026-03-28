@@ -6,9 +6,16 @@ export default [
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
     files: ["./packs/data/gametests/**/*.{js,mjs,cjs,ts}"],
-    languageOptions: { 
-      globals: globals.browser 
+    languageOptions: {
+      globals: globals.browser
     },
     settings: {
       "import/resolver": {}
