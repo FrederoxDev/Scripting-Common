@@ -1,7 +1,7 @@
 import { Player, RawMessage } from "@minecraft/server";
 import { BaseFormScreen, ScreenRequest, ViewRequest } from "../forms/BaseFormScreen";
 import { ModalFormData, ModalFormDataDropdownOptions, ModalFormDataSliderOptions, ModalFormDataTextFieldOptions, ModalFormDataToggleOptions } from "@minecraft/server-ui";
-import { assert, unreachable } from "../logs/Assert";
+import { assert, unreachable } from "../error/Error";
 
 interface BaseBinding {
     index: number;

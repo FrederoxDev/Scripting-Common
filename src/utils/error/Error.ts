@@ -9,3 +9,7 @@ export function assert(conditional: boolean, ...data: unknown[]): asserts condit
         return arg;
     }).join(" "));
 }
+
+export function unreachable(): never {
+    throw new Error("This code should be unreachable");
+}
