@@ -1,9 +1,9 @@
-import { CustomCommand, CustomCommandOrigin, CustomCommandRegistry, CustomCommandResult, CustomCommandStatus, Player, system } from "@minecraft/server";
+import { CommandPermissionLevel, CustomCommand, CustomCommandOrigin, CustomCommandRegistry, CustomCommandResult, CustomCommandStatus, Player, system } from "@minecraft/server";
 
 type CommandCallback<T extends unknown[]> = (player: Player, ...args: T) => void | Promise<void>;
 
 export interface CommandOptions extends Omit<CustomCommand, "permissionLevel" | "cheatsRequired"> {
-    permissionLevel?: number;
+    permissionLevel?: CommandPermissionLevel;
 }
 
 export function createCommand<T extends unknown[]>(
@@ -13,7 +13,7 @@ export function createCommand<T extends unknown[]>(
 ) {
     registry.registerCommand({
         ...options,
-        permissionLevel: options.permissionLevel ?? 0,
+        permissionLevel: options.permissionLevel ?? CommandPermissionLevel.Any,
         cheatsRequired: false,
     }, (origin: CustomCommandOrigin, ...args: unknown[]) => {
         const player = origin.sourceEntity;
