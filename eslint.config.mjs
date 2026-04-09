@@ -13,7 +13,7 @@ export default [
     },
   },
   {
-    files: ["./packs/data/gametests/**/*.{js,mjs,cjs,ts}"],
+    files: ["./packs/data/scripts/**/*.{js,mjs,cjs,ts}"],
     languageOptions: {
       globals: globals.browser
     },
