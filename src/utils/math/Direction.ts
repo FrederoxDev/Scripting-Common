@@ -162,6 +162,7 @@ declare module "@minecraft/server" {
         export function RotateVec3(vec: Vector3, direction: Direction): Vector3;
 
         export function GetYAngle(direction: Direction): number;
+        export function GetPerpendicular(direction: Direction): [Direction, Direction];
     }
 }
 
@@ -195,6 +196,19 @@ Direction.RotateVec3 = function(vec: Vector3, facing: Direction): Vector3 {
             return { x: vec.z, y: vec.y, z: -vec.x };
         default:
             return { ...vec }; // Up/Down don’t rotate horizontally
+    }
+}
+
+Direction.GetPerpendicular = function(direction: Direction): [Direction, Direction] {
+    switch (direction) {
+        case Direction.North:
+        case Direction.South:
+            return [Direction.East, Direction.West];
+        case Direction.East:
+        case Direction.West:
+            return [Direction.North, Direction.South];
+        default:
+            return [Direction.East, Direction.West];
     }
 }
 
