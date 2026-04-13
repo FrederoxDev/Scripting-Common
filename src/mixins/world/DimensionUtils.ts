@@ -43,8 +43,17 @@ declare module "@minecraft/server" {
     }
 }
 
+let resolveCleanup!: () => void;
+/**
+ * Resolves after `removeAllTickingAreas()` has run on worldLoad. Systems that
+ * spawn entities via `ensureAreaLoaded` at world-load time should await this
+ * first to avoid having their ticking areas nuked mid-creation.
+ */
+export const tickingAreaCleanupComplete: Promise<void> = new Promise<void>(r => { resolveCleanup = r; });
+
 world.afterEvents.worldLoad.subscribe(() => {
-    world.tickingAreaManager.removeAllTickingAreas();
+    try { world.tickingAreaManager.removeAllTickingAreas(); } catch {}
+    resolveCleanup();
 });
 
 const MAX_TICKING_AREAS = 10;
