@@ -4,6 +4,7 @@ export class ComponentSystem<T> {
     private _internalRegistered: Record<string, T> = {};
 
     registerComponent(id: string, component: T): void {
+        assert(this._internalRegistered[id] === undefined, `Component with id ${id} is already registered`);
         this._internalRegistered[id] = component;
     }
 
