@@ -121,7 +121,11 @@ export class VirtualContainer {
      * Attempts to add the provided items into the virtual container.
      * @returns true if all items were added, false if there was not enough space.
      */
-    tryAddItems(container: ContainerLike, items: ItemStack[]): boolean {
+    tryAddItems(
+        container: ContainerLike,
+        items: ItemStack[],
+        canPlace?: (slotIndex: number, item: ItemStack) => boolean,
+    ): boolean {
         const simulated = this.slots.map(i => {
             const slot = container.getSlot(i);
             return slot.hasItem() ? slot.getItem()!.clone() : undefined;
@@ -131,12 +135,14 @@ export class VirtualContainer {
         for (const incoming of items) {
             let remaining = incoming.amount;
 
-            for (const item of simulated) {
+            for (let i = 0; i < simulated.length; i++) {
+                const item = simulated[i];
                 if (!item) continue;
                 if (item.typeId !== incoming.typeId) continue;
 
                 const space = item.maxAmount - item.amount;
                 if (space <= 0) continue;
+                if (canPlace && !canPlace(this.slots[i]!, incoming)) continue;
 
                 const used = Math.min(space, remaining);
                 item.amount += used;
@@ -147,6 +153,7 @@ export class VirtualContainer {
 
             for (let i = 0; i < simulated.length && remaining > 0; i++) {
                 if (simulated[i]) continue;
+                if (canPlace && !canPlace(this.slots[i]!, incoming)) continue;
 
                 const placed = Math.min(incoming.maxAmount, remaining);
                 const clone = incoming.clone();
