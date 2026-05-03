@@ -22,6 +22,13 @@ export class VirtualContainer {
     }
 
     /**
+     * @returns The underlying real slot indices.
+     */
+    get indices(): readonly number[] {
+        return this.slots;
+    }
+
+    /**
      * Returns a slot using a virtual slot index.
      * @param slot 
      * @returns 
